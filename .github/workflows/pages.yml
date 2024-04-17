@@ -19,6 +19,9 @@ concurrency:
 jobs:
     build:
         runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./docs
         steps:
             - name: Checkout your repository using git
               uses: actions/checkout@v4
@@ -27,9 +30,6 @@ jobs:
               uses: oven-sh/setup-bun@v1
               with:
                   bun-version: latest
-
-            - name: go to the directory
-              run: cd docs
 
             - name: Install dependencies
               run: bun install
@@ -40,7 +40,7 @@ jobs:
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v3
               with:
-                  path: dist
+                  path: ./docs/dist
 
     deploy:
         environment:
