@@ -1,7 +1,7 @@
 # Inteli - Instituto de Tecnologia e Liderança 
 
 <p align="center">
-<a href= "https://www.inteli.edu.br/"><img src="./docs/static/img/inteli.png" alt="Inteli - Instituto de Tecnologia e Liderança" width="300px"></a>
+<a href= "https://www.inteli.edu.br/"><img src="./docs/public/inteli.png" alt="Inteli - Instituto de Tecnologia e Liderança" width="300px"></a>
 </p>
 
 # Desenvolvimento de aplicações hiperescalavéis
