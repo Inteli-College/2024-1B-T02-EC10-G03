@@ -5,16 +5,16 @@ import starlightImageZoom from 'starlight-image-zoom';
 
 // https://astro.build/config
 export default defineConfig({
-	site: process.env.CI ? 'http://vinicioslugli.github.io' : 'http://localhost:4321',
-	base: '/starlight-docs-template/',
+	site: process.env.CI ? 'https://inteli-college.github.io' : 'http://localhost:4321',
+	base: '/2024-1B-T02-EC10-G03/',
 	integrations: [
 		starlight({
 			title: 'Starlight Template',
 			social: {
-				github: 'https://github.com/ViniciosLugli/starlight-docs-template',
+				github: 'https://github.com/Inteli-College/2024-1B-T02-EC10-G03',
 			},
 			editLink: {
-				baseUrl: 'https://github.com/ViniciosLugli/starlight-docs-template/tree/main',
+				baseUrl: 'https://github.com/Inteli-College/2024-1B-T02-EC10-G03/tree/main/docs',
 			},
 			logo: {
 				src: './src/assets/houston.webp',
