@@ -1,0 +1,167 @@
+generator client {
+    provider = "cargo prisma"
+    output   = "../src/db.rs"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Patient {
+    uuid        String        @id @default(uuid())
+    name        String
+    createdAt   DateTime      @default(now())
+    updatedAt   DateTime      @updatedAt
+    deletedAt   DateTime?
+    Transaction Transaction[]
+
+    @@index([name])
+}
+
+enum EmployeeRole {
+    NURSE
+    PHARMACIST
+    IT
+}
+
+model Employee {
+    uuid                  String                  @id @default(uuid())
+    role                  EmployeeRole
+    name                  String
+    createdAt             DateTime                @default(now())
+    updatedAt             DateTime                @updatedAt
+    deletedAt             DateTime?
+    Transaction           Transaction[]
+    OverriddenTransaction OverriddenTransaction[]
+
+    @@index([role, name])
+}
+
+model MedicineName {
+    uuid      String     @id @default(uuid())
+    name      String
+    createdAt DateTime   @default(now())
+    Medicine  Medicine[]
+
+    @@index([name])
+}
+
+model Medicine {
+    uuid             String        @id @default(uuid())
+    externalId       String
+    createdAt        DateTime      @default(now())
+    updatedAt        DateTime      @updatedAt
+    Transaction      Transaction[]
+    Inventory        Inventory[]
+    MedicineName     MedicineName? @relation(fields: [medicineNameUuid], references: [uuid])
+    medicineNameUuid String?
+
+    @@index([externalId])
+}
+
+enum TransactionType {
+    IN
+    OUT
+}
+
+model Transaction {
+    uuid           String          @id @default(uuid())
+    type           TransactionType
+    employee       Employee        @relation(fields: [employeeUuid], references: [uuid])
+    employeeUuid   String
+    patient        Patient         @relation(fields: [patientUuid], references: [uuid])
+    patientUuid    String
+    medicine       Medicine        @relation(fields: [medicineUuid], references: [uuid])
+    medicineUuid   String
+    quantity       Int
+    validation     Validation      @relation(fields: [validationUuid], references: [uuid])
+    validationUuid String
+    createdAt      DateTime        @default(now())
+
+    @@index([employeeUuid, patientUuid, medicineUuid])
+}
+
+model OverriddenTransaction {
+    uuid           String     @id @default(uuid())
+    employee       Employee   @relation(fields: [employeeUuid], references: [uuid])
+    employeeUuid   String
+    validation     Validation @relation(fields: [validationUuid], references: [uuid])
+    validationUuid String
+    overrideReason String
+    createdAt      DateTime   @default(now())
+
+    @@index([employeeUuid, validationUuid])
+}
+
+enum ValidationStatus {
+    SUSPECT
+    NORMAL
+    UNVERIFIED
+}
+
+model Validation {
+    uuid                  String                  @id @default(uuid())
+    openTime              Int
+    override              Boolean                 @default(false)
+    suposedQuantity       Int
+    patientAcceptance     Boolean                 @default(true)
+    createdAt             DateTime                @default(now())
+    status                ValidationStatus        @default(UNVERIFIED)
+    Transaction           Transaction[]
+    OverriddenTransaction OverriddenTransaction[]
+
+    @@index([status])
+}
+
+model Pyxis {
+    uuid      String      @id @default(uuid())
+    floor     Int
+    block     String
+    createdAt DateTime    @default(now())
+    Inventory Inventory[]
+
+    @@index([floor, block])
+}
+
+model Inventory {
+    medicine     Medicine @relation(fields: [medicineUuid], references: [uuid])
+    medicineUuid String
+    pyxis        Pyxis    @relation(fields: [pyxisUuid], references: [uuid])
+    pyxisUuid    String
+    quantity     Int
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    @@id([pyxisUuid, medicineUuid])
+    @@index([pyxisUuid, medicineUuid])
+}
+
+enum LogLevel {
+    DEBUG
+    INFO
+    WARNING
+    ERROR
+}
+
+enum LogEvent {
+    PYXIS
+    BACKEND
+    DATABASE
+    TRANSACTION
+    INVENTORY
+    EMPLOYEE
+    PATIENT
+    MEDICINE
+    VALIDATION
+}
+
+model Log {
+    cuid      String   @id @default(cuid())
+    level     LogLevel
+    event     LogEvent
+    data      Json
+    createdAt DateTime @default(now())
+
+    @@index([level, event])
+}
