@@ -115,11 +115,12 @@ model Validation {
 }
 
 model Pyxis {
-    uuid      String      @id @default(uuid())
-    floor     Int
-    block     String
-    createdAt DateTime    @default(now())
-    Inventory Inventory[]
+    uuid       String      @id @default(uuid())
+    floor      Int
+    block      String
+    extra_data Json?
+    createdAt  DateTime    @default(now())
+    Inventory  Inventory[]
 
     @@index([floor, block])
 }

@@ -9,7 +9,7 @@ export default defineConfig({
 	base: '/2024-1B-T02-EC10-G03/',
 	integrations: [
 		starlight({
-			title: 'Starlight Template',
+			title: 'Pyxis Vultures',
 			social: {
 				github: 'https://github.com/Inteli-College/2024-1B-T02-EC10-G03',
 			},
@@ -17,17 +17,34 @@ export default defineConfig({
 				baseUrl: 'https://github.com/Inteli-College/2024-1B-T02-EC10-G03/tree/main/docs',
 			},
 			logo: {
-				src: './src/assets/houston.webp',
+				src: './src/assets/logo.png',
 			},
 			customCss: ['./src/styles/custom.css'],
+
 			sidebar: [
 				{
-					label: 'Guides',
-					items: [{ label: 'Example Guide', autogenerate: { directory: 'guides' } }],
+					label: 'Overview',
+					autogenerate: { directory: 'overview' },
 				},
 				{
-					label: 'Reference',
-					autogenerate: { directory: 'reference' },
+					label: 'Sprint 1',
+					autogenerate: { directory: 'sprint-1' },
+				},
+				{
+					label: 'Sprint 2',
+					autogenerate: { directory: 'sprint-2' },
+				},
+				{
+					label: 'Sprint 3',
+					autogenerate: { directory: 'sprint-3' },
+				},
+				{
+					label: 'Sprint 4',
+					autogenerate: { directory: 'sprint-4' },
+				},
+				{
+					label: 'Sprint 5',
+					autogenerate: { directory: 'sprint-5' },
 				},
 			],
 			pagination: true,
