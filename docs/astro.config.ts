@@ -24,26 +24,40 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: 'Overview',
+					collapsed: true,
 					autogenerate: { directory: 'overview' },
 				},
 				{
 					label: 'Sprint 1',
+					collapsed: true,
 					autogenerate: { directory: 'sprint-1' },
+
+					items: [
+						{
+							label: 'Negócios',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-1/business' },
+						},
+					]
 				},
 				{
 					label: 'Sprint 2',
+					collapsed: true,
 					autogenerate: { directory: 'sprint-2' },
 				},
 				{
 					label: 'Sprint 3',
+					collapsed: true,
 					autogenerate: { directory: 'sprint-3' },
 				},
 				{
 					label: 'Sprint 4',
+					collapsed: true,
 					autogenerate: { directory: 'sprint-4' },
 				},
 				{
 					label: 'Sprint 5',
+					collapsed: true,
 					autogenerate: { directory: 'sprint-5' },
 				},
 			],
