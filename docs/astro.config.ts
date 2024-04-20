@@ -38,6 +38,11 @@ export default defineConfig({
 							collapsed: true,
 							autogenerate: { directory: 'sprint-1/business' },
 						},
+						{
+							label: 'Sistema',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-1/system' },
+						}
 					]
 				},
 				{
