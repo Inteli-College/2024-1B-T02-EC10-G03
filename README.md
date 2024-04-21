@@ -21,6 +21,16 @@
 -   <a href="https://www.linkedin.com/in/natalia-k-37a62052/">Natalia Kloeckner</a>
 -   <a href="https://www.linkedin.com/in/francisco-escobar/">Francisco Escobar</a>
 
+## :mortar_board: Integrantes
+
+-   <a href="https://www.linkedin.com/in/vinicioslugli/">Vinicios Lugli</a>
+-   <a href="https://www.linkedin.com/in/luca-giberti-63a4ab231/">Luca Giberti</a>
+-   <a href="https://www.linkedin.com/in/gabriela-barretto-dados/">Gabriela Barretto</a>
+-   <a href="https://www.linkedin.com/in/filipikikuchi/">Filipi Kikuchi</a>
+-   <a href="https://www.linkedin.com/in/caiomt/">Caio Martins</a>
+-   <a href="https://www.linkedin.com/in/pablo-ruan-lana-viana/">Pablo Ruan</a>
+-   <a href="https://www.linkedin.com/in/gabriela-rodrigues-matias/">Gabriela Matias</a>
+
 ## 📝 Descrição
 
 O objetivo deste módulo é explorar aspectos aplicações hiperescaláveis. A proposta do módulo envolve planejar uma arquitetura escalável no contexto de aplicativos móveis robustos que possibilite solicitar os medicamentos, controlar o acesso e realizar integrações com outras soluções em parceria com o Hospital Sírio-Libanês.
