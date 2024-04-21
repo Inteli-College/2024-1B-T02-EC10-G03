@@ -20,10 +20,10 @@ export default defineConfig({
 				src: './src/assets/logo.png',
 			},
 			customCss: ['./src/styles/custom.css'],
-
+			defaultLocale: 'pt-BR',
 			sidebar: [
 				{
-					label: 'Overview',
+					label: 'Visão Geral',
 					collapsed: true,
 					autogenerate: { directory: 'overview' },
 				},
@@ -42,8 +42,8 @@ export default defineConfig({
 							label: 'Sistema',
 							collapsed: true,
 							autogenerate: { directory: 'sprint-1/system' },
-						}
-					]
+						},
+					],
 				},
 				{
 					label: 'Sprint 2',
