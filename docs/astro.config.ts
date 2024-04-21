@@ -39,6 +39,11 @@ export default defineConfig({
 							autogenerate: { directory: 'sprint-1/business' },
 						},
 						{
+							label: 'Experiência do Usuário',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-1/ux' },
+						},
+						{
 							label: 'Sistema',
 							collapsed: true,
 							autogenerate: { directory: 'sprint-1/system' },
