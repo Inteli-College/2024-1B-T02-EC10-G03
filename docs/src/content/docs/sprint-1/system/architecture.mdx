@@ -10,3 +10,14 @@ description: Proposta de implementação inicial do sistema.
 A arquitetura do sistema é composta por diversos componentes que interagem entre si para fornecer a funcionalidade desejada. A seguir, apresentamos uma visão geral da implementação inicial da arquitetura proposta para o sistema.
 
 <iframe style={{ border: 'none', height: '450px', width: '800px' }} src="https://whimsical.com/embed/4HMkJ3Q4zUPnk7gNcFxp1t@3QU9HnCUzCcxhscFgcgM6gAxn2EGUkPc7gsuDy1"></iframe>
+
+## Implementação inicial do sistema
+Para elaborar a primeira versão do sistema, foram identificados os [requisitos funcionais e não funcionais](/2024-1B-T02-EC10-G03/sprint-1/system/requirements/) da aplicação, para construir a arquitetura do sistema e definir as tecnologias que serão utilizadas.
+
+- Frontend: A aplicação mobile será desenvolvida utilizando o framework React Native, que permite a criação de aplicativos nativos para Android e iOS a partir de um único código fonte. O React Native é uma escolha adequada para o projeto, pois oferece uma experiência de usuário semelhante à de aplicativos nativos, além de facilitar a integração com APIs e serviços externos.
+
+- Backend: Optou-se pela utilização do _ntex_, framework para desenvolvimento de aplicações web e APIs em Rust. O _ntex_ foi escolhido por ser uma ferramenta robusta e eficiente, que oferece suporte para a criação de servidores web de alto desempenho. Além disso, o Rust é uma linguagem de programação segura e eficiente, que permite a criação de sistemas confiáveis e escaláveis.
+
+- Banco de dados: O sistema utilizará o PostgreSQL como banco de dados relacional. O PostgreSQL é uma escolha adequada para o projeto, pois ofere uma ampla gama de recursos e funcionalidades, além de ser altamente confiável e escalável. Este estará hospedado no Amazon Relational Database Service (RDS), que é um serviço gerenciado de banco de dados relacional da Amazon Web Services (AWS). A modelagem dos dados será feita utilizando o Prisma, um ORM (Object-Relational Mapping) para Node.js e TypeScript. Além disso, os dados gerados serão disponibilizados no Metabase, uma ferramenta de análise de dados e geração de relatórios.
+
+- Simulador: Pretendemos simular o dispensador automático de medicamentos utilizando um Raspberry Pi e um cofre. Para fazer a conferência dos itens retirados, haverá a aplicação de visão computacional utilizando a biblioteca OpenCV e um modelo de Machine Learning para identificar os medicamentos retirados. Pretende-se utilizar Python para o desenvolvimento do simulador.
