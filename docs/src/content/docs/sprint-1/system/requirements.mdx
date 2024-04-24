@@ -7,4 +7,19 @@ description: Requisitos do sistema.
 
 ### Requisitos Funcionais
 
+-   **Extração de dados**: Capacidade de extrair dados de forma eficiente e rápida do sistema, incluindo informações sobre medicamentos, pacientes, solicitações, validações e estoque.
+-   **Integração de dados**: Facilitar a integração com sistemas externos como o Pyxis, mesmo na ausência de uma API dedicada.
+-   **Detecção de operações suspeitas**: Identificar automaticamente operações suspeitas baseadas em critérios predefinidos como retiradas em múltiplos andares ou unidades, cancelamento de solicitações, tempo de abertura prolongado, validação por câmera e outros.
+-   **Gestão de inventário**: Alertas automáticos e manuais sobre o nível de estoque dos itens, incluindo notificações quando os itens estão acabando ou quando há discrepâncias na contagem de estoque.
+-   **Fluxo de utilização simplificado**: Minimização da necessidade de digitação por parte dos enfermeiros, com opções pré-selecionadas e processos guiados via interface.
+-   **Validações rápidas**: Implementação de retirada de medicamentas a partir de QRCodes para agilizar o processo de validação e reduzir erros.
+
 ### Requisitos Não Funcionais
+
+-   **Performance e responsividade**: O sistema deve ser capaz de responder rapidamente a todas as interações, especialmente em situações de urgência.
+-   **Segurança e conformidade**: Garantir a segurança dos dados e conformidade com as normas de saúde e segurança, incluindo a capacidade de verificar e validar retiradas de medicamentos, para por exemplo, utilizar-se em casos de auditoria.
+-   **Facilidade de uso**: Interface do usuário intuitiva e simplificada, focada em reduzir o tempo de treinamento e maximizar a eficiência operacional dos enfermeiros e farmacêuticos.
+-   **Integração de câmeras de segurança**: Integrar o sistema com câmeras para gravação e validação de retiradas, servindo como um meio de verificar ações suspeitas e ajudar na prevenção de fraudes.
+-   **Suporte para análise de dados**: Capacidade de agrupar e analisar dados de múltiplas fontes para identificar tendências, padrões de uso e possíveis pontos de melhoria no sistema de distribuição de medicamentos pela dashboard.
+-   **Escalabilidade**: Capacidade do sistema de escalar conforme o crescimento das necessidades do hospital, incluindo a adição de mais unidades Pyxis ou expansão de novos andares.
+-   **Relatório de erros, notificações e registros**: Sistema de notificação de erros e exceções que permite intervenções rápidas e eficazes em caso de problemas operacionais ou técnicos no sistema.
