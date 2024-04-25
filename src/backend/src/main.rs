@@ -5,15 +5,20 @@ extern crate log;
 #[allow(warnings, unused)]
 mod db;
 
+mod error;
+
 use db::*;
+use error::HttpError;
 use ntex::{
 	http,
+	util::Bytes,
 	web::{self, middleware, App, HttpResponse},
 };
 use ntex_cors::Cors;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::sync::Arc;
+use utoipa::{OpenApi, ToSchema};
 
 struct AppState {
 	db: PrismaClient,
@@ -38,6 +43,52 @@ struct User {
 	email: String,
 }
 
+#[derive(ToSchema)]
+struct IndexResponse {
+	message: String,
+}
+
+#[derive(OpenApi)]
+#[openapi(paths(index), components(schemas(IndexResponse, HttpError)))]
+struct ApiDoc;
+
+#[web::get("/{tail}*")]
+async fn get_swagger(
+	tail: web::types::Path<String>,
+	openapi_conf: web::types::State<Arc<utoipa_swagger_ui::Config<'static>>>,
+) -> Result<web::HttpResponse, HttpError> {
+	if tail.as_ref() == "swagger.json" {
+		let spec = ApiDoc::openapi().to_json().map_err(|err| HttpError {
+			status: http::StatusCode::INTERNAL_SERVER_ERROR,
+			message: format!("Error generating OpenAPI spec: {}", err),
+		})?;
+		return Ok(web::HttpResponse::Ok().content_type("application/json").body(spec));
+	}
+	let conf = openapi_conf.as_ref().clone();
+	match utoipa_swagger_ui::serve(&tail, conf.into())
+		.map_err(|err| HttpError { message: format!("Error serving Swagger UI: {}", err), status: http::StatusCode::INTERNAL_SERVER_ERROR })?
+	{
+		None => Err(HttpError { status: http::StatusCode::NOT_FOUND, message: format!("path not found: {}", tail) }),
+		Some(file) => Ok({
+			let bytes = Bytes::from(file.bytes.to_vec());
+			web::HttpResponse::Ok().content_type(file.content_type).body(bytes)
+		}),
+	}
+}
+
+pub fn ntex_swagger_config(config: &mut web::ServiceConfig) {
+	let swagger_config = Arc::new(utoipa_swagger_ui::Config::new(["/swagger/swagger.json"]).use_base_layout());
+	config.service(web::scope("/swagger/").state(swagger_config).service(get_swagger));
+}
+
+#[utoipa::path(
+	get,
+	path = "/",
+	responses(
+		(status = 200, description = "Success", body = IndexResponse),
+		(status = 500, description = "Internal server error", body = HttpError)
+	),
+)]
 #[web::get("/")]
 async fn index() -> HttpResponse {
 	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
@@ -47,6 +98,7 @@ async fn index() -> HttpResponse {
 async fn main() -> std::io::Result<()> {
 	dotenvy::dotenv().ok();
 	pretty_env_logger::init();
+
 	info!("Starting server...");
 	let client = PrismaClient::_builder().build().await.unwrap();
 	info!("Connected to database!");
@@ -69,6 +121,7 @@ async fn main() -> std::io::Result<()> {
 	web::server(move || {
 		App::new()
 			.state(state.clone())
+			.configure(ntex_swagger_config)
 			.wrap(middleware::Logger::default())
 			.wrap(
 				Cors::new()
@@ -89,7 +142,7 @@ async fn main() -> std::io::Result<()> {
 mod tests {
 	use super::*;
 	use ntex::web::{test, App, Error};
-	use prisma_client_rust::{queries::Result as QueryResult, MockStore};
+	use prisma_client_rust::MockStore;
 
 	async fn setup_mock() -> (Arc<AppState>, MockStore) {
 		let (client, mock) = PrismaClient::_mock();
