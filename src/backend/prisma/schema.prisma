@@ -118,7 +118,7 @@ model Pyxis {
     uuid       String      @id @default(uuid())
     floor      Int
     block      String
-    extra_data Json?
+    extra_data Json        @default("{}")
     createdAt  DateTime    @default(now())
     Inventory  Inventory[]
 
