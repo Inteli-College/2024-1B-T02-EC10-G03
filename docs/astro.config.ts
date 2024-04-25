@@ -21,6 +21,11 @@ export default defineConfig({
 			},
 			customCss: ['./src/styles/custom.css'],
 			defaultLocale: 'pt-BR',
+			locales: {
+				'pt-BR': {
+					label: 'Português',
+				},
+			},
 			sidebar: [
 				{
 					label: 'Visão Geral',
