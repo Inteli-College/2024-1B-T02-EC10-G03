@@ -1,0 +1,32 @@
+---
+title: Arquitetura
+sidebar:
+    order: -2
+description: Proposta de implementação inicial do sistema.
+---
+
+## Arquitetura do sistema
+
+A arquitetura do sistema é composta por diversos componentes que interagem entre si para fornecer a funcionalidade desejada. A seguir, apresentamos uma visão geral da implementação inicial da arquitetura proposta para o sistema.
+
+<iframe style={{ border: 'none', height: '450px', width: '800px' }} src="https://whimsical.com/embed/4HMkJ3Q4zUPnk7gNcFxp1t@NKBbAEvLSvA5NWfTA7BSfZqJxwLmCD54W"></iframe>
+
+## Implementação inicial do sistema
+
+Para elaborar a primeira versão do sistema, foram identificados os [requisitos funcionais e não funcionais](/2024-1B-T02-EC10-G03/sprint-1/system/requirements/) da aplicação, para construir a arquitetura do sistema e definir as tecnologias que serão utilizadas.
+
+-   **Frontend**: A aplicação mobile será desenvolvida utilizando o framework [_React Native_](https://reactnative.dev/), que permite a criação de aplicativos nativos para Android e iOS a partir de um único código fonte. O [React Native](https://reactnative.dev/) é uma escolha adequada para o projeto, pois oferece uma experiência de usuário semelhante à de aplicativos nativos, além de facilitar a integração com APIs e serviços externos.
+
+-   **Backend**: Optou-se pela utilização do [_ntex_](https://ntex.rs/), framework para desenvolvimento de aplicações web e APIs em [_Rust_](https://www.rust-lang.org/) O [_ntex_](https://ntex.rs/) foi escolhido por ser uma ferramenta robusta e eficiente, que oferece suporte para a criação de servidores web de alto desempenho. Além disso, o [_Rust_](https://www.rust-lang.org/) é uma linguagem de programação segura e eficiente, que permite a criação de sistemas confiáveis e escaláveis. A modelagem dos dados será feita utilizando o [_Prisma_](https://www.prisma.io/), um ORM (Object-Relational Mapping) para que contém suporte para [_Rust_](https://www.rust-lang.org/)
+
+-   **Banco de dados**: O sistema utilizará o [_PostgreSQL_](https://www.postgresql.org/) como banco de dados relacional. O [_PostgreSQL_](https://www.postgresql.org/) é uma escolha adequada para o projeto, pois ofere uma ampla gama de recursos e funcionalidades, além de ser altamente confiável e escalável. Este estará hospedado no [_Amazon Relational Database Service (RDS)_](https://aws.amazon.com/pt/rds/), que é um serviço gerenciado de banco de dados relacional da [_Amazon Web Services (AWS)_](https://aws.amazon.com/). Será utilizado do [_redis_](https://redis.io/) para armazenamento de cache, que será hospedado no [_Amazon ElastiCache_](https://aws.amazon.com/pt/elasticache/), que é um serviço de cache gerenciado da [_AWS_](https://aws.amazon.com/). Também será utilizado o [_Amazon S3_](https://aws.amazon.com/pt/s3/) para armazenamento de arquivos de vídeo e imagem. Além disso, os dados gerados serão disponibilizados no [_Metabase_](https://www.metabase.com/), uma ferramenta de análise de dados e geração de relatórios.
+
+-   **Pyxis**: Pretendemos simular o dispensador automático de medicamentos utilizando um [_Raspberry Pi_](https://www.raspberrypi.com/products/raspberry-pi-5/) e um cofre modelado em MDF. Para fazer a conferência dos itens retirados, haverá a uma aplicação utilizando a biblioteca [_OpenCV_](https://opencv.org/) para gravação e envio de imagens para o servidor.
+
+-   **Processador de vídeos**: Para treino, utilizaremos o [_Google Colab_](https://colab.research.google.com/), que é um ambiente de desenvolvimento integrado baseado na nuvem, que permite a execução de códigos em [_Python_](https://www.python.org/) e a utilização da biblioteca do [_Yolo Ultralytics_](https://docs.ultralytics.com/) para processamento de vídeos, e a ferramenta do [_Roboflow_](https://roboflow.com/) para adquirir os datasets. Agora para a implementação do modelo, utilizaremos o [_OpenCV_](https://opencv.org/) para resgatar as imágens, e o próprio [_Yolo Ultralytics_](https://docs.ultralytics.com/) para processar os vídeos.
+
+-   **Teste de carga**: Para testar a capacidade do sistema, utilizaremos o [_K6_](https://k6.io/), que é uma ferramenta de teste de carga e desempenho de código aberto, que permite simular o comportamento de usuários em um sistema em produção. Será utilizado o [_Webpack_](https://webpack.js.org/) para empacotar e transpilar o código [_Typescript_](https://www.typescriptlang.org/) para uso no [_K6_](https://k6.io/).
+
+-   **Sistema de filas**: Para a comunicação entre os serviços de processamento de vídeos e o backend, utilizaremos o [_Kafka_](https://kafka.apache.org/), hospeado no [_Amazon Managed Streaming for Apache Kafka (MSK)_](https://aws.amazon.com/pt/msk/), que é um serviço gerenciado de streaming de dados da [_AWS_](https://aws.amazon.com/) que permite a criação de aplicações de streaming em tempo real de maneira escalável e segura.
+
+-   **Sistema de monitoramento**: Para monitoramento dos sistema, iremos utilizar o [_Sentry_](https://sentry.io/), que é uma plataforma de monitoramento de aplicações que permite a identificação e correção de erros em tempo real, com integração ao [_Slack_](https://slack.com/), para notificação de erros, e ao [_Github_](https://github.com/) para integração com o repositório de código e criação de issues automaticamente a partir dos erros identificados.

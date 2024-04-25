@@ -20,30 +20,59 @@ export default defineConfig({
 				src: './src/assets/logo.png',
 			},
 			customCss: ['./src/styles/custom.css'],
-
+			defaultLocale: 'pt-BR',
+			locales: {
+				'pt-BR': {
+					label: 'Português',
+				},
+			},
 			sidebar: [
 				{
-					label: 'Overview',
+					label: 'Visão Geral',
+					collapsed: true,
 					autogenerate: { directory: 'overview' },
 				},
 				{
 					label: 'Sprint 1',
+					collapsed: true,
 					autogenerate: { directory: 'sprint-1' },
+
+					items: [
+						{
+							label: 'Negócios',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-1/business' },
+						},
+						{
+							label: 'Experiência do Usuário',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-1/ux' },
+						},
+						{
+							label: 'Sistema',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-1/system' },
+						},
+					],
 				},
 				{
 					label: 'Sprint 2',
+					collapsed: true,
 					autogenerate: { directory: 'sprint-2' },
 				},
 				{
 					label: 'Sprint 3',
+					collapsed: true,
 					autogenerate: { directory: 'sprint-3' },
 				},
 				{
 					label: 'Sprint 4',
+					collapsed: true,
 					autogenerate: { directory: 'sprint-4' },
 				},
 				{
 					label: 'Sprint 5',
+					collapsed: true,
 					autogenerate: { directory: 'sprint-5' },
 				},
 			],

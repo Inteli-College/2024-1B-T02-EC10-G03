@@ -1,0 +1,64 @@
+{
+	"folders": [
+		{
+			"path": ".",
+			"name": "Root"
+		},
+		{
+			"path": "docs",
+			"name": "Documentation"
+		},
+		{
+			"path": "src/backend",
+			"name": "Backend"
+		},
+		{
+			"path": "src/dashboard",
+			"name": "Dashboard"
+		},
+		{
+			"path": "src/metabase",
+			"name": "Metabase"
+		},
+		{
+			"path": "src/pyxis",
+			"name": "Pyxis"
+		},
+		{
+			"path": "src/load_test",
+			"name": "Load Testing"
+		},
+		{
+			"path": "src/ai_processor",
+			"name": "AI Processor"
+		}
+	],
+	"settings": {
+		"conventionalCommits.scopes": [
+			"project",
+			"starlight",
+			"backend",
+			"readme",
+			"dashboard",
+			"metabase",
+			"pyxis",
+			"load_test"
+		],
+	},
+	"extensions": {
+		"recommendations": [
+			"1yib.rust-bundle",
+			"astro-build.astro-vscode",
+			"dsznajder.es7-react-js-snippets",
+			"msjsdiag.vscode-react-native",
+			"formulahendry.auto-rename-tag",
+			"ms-python.python",
+			"kevinrose.vsc-python-indent",
+			"ms-azuretools.vscode-docker",
+			"redhat.vscode-yaml",
+			"tamasfe.even-better-toml",
+			"esbenp.prettier-vscode",
+			"rvest.vs-code-prettier-eslint"
+		]
+	}
+}

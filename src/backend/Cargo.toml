@@ -18,6 +18,8 @@ prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust
 	"mocking",
 ] }
 tokio = { version = "1.37.0", features = ["full"] }
+utoipa = "4.2.0"
+utoipa-swagger-ui = "6.0.0"
 
 [workspace]
 resolver = "2"
