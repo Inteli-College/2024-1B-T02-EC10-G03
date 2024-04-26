@@ -4,3 +4,84 @@ sidebar:
     order: 1
 description: Configuração do ambiente de produção do sistema.
 ---
+
+Para iniciar os serviços do sistema para produção, siga as instruções abaixo para cada um dos serviços.
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+## Documentação
+
+Atualmente a documentação não exige a utilização de um ambiente de produção específico, pois é servida através do GitHub Pages. Para mais informais sobre o pipeline de CI/CD da documentação, acesse o arquivo [`.github/workflows/pages.yml`](https://github.com/Inteli-College/2024-1B-T02-EC10-G03/blob/main/.github/workflows/pages.yml) no repositório do projeto.
+
+## Dashboard
+
+Para fazer o deploy do dashboard em um ambiente de produção, ou seja, criar o build do aplicativo e disponibilizá-lo para os usuários finais, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório do dashboard:
+
+        ```bash title="Terminal"
+        cd src/dashboard
+        ```
+
+2.  Crie um arquivo `.env` com as variáveis de ambiente necessárias para o dashboard. Você pode copiar o arquivo de exemplo `.env.template` e ajustar as configurações conforme necessário.
+
+        ```bash title="Terminal"
+        cp .env.template .env
+        ```
+
+3.  Pegue o seu `EXPO_TOKEN` e o `EAS_ID` do projeto. Para isso, acesse o [tokens de acesso Expo](https://expo.dev/accounts/[account]/settings/access-tokens) e crie um novo token de acesso para pegar o `EXPO_TOKEN`. Acesse o [projetos Expo](https://expo.dev/accounts/[account]/projects) para criar e pegar o `EAS_ID` do projeto. Adicione/Atualize essas informações no arquivo `.env`. Segue o exemplo do arquivo `.env`:
+
+        ```sh title=".env"
+        EXPO_TOKEN=your-expo-token
+        EAS_ID=your-eas-id
+        ```
+
+4.  Execute o comando para fazer o build do aplicativo:
+
+        ```bash title="Terminal"
+        docker compose -f docker-compose-prod.yml up --build
+        ```
+
+5.  Agora será necessário aguardar o término do build do aplicativo. Você pode acompanhar pelo terminal o progresso do build, ou acessar o projeto diretamente em [projetos Expo](https://expo.dev/accounts/[account]/projects), assim você pode baixar o build gerado.
+
+</Steps>
+
+## Backend
+
+Para iniciar o servidor do backend localmente, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório do backend:
+
+        ```bash title="Terminal"
+        cd src/backend
+        ```
+
+2.  Crie um arquivo `.env` com as variáveis de ambiente necessárias para o backend. Você pode copiar o arquivo de exemplo `.env.template` e ajustar as configurações conforme necessário.
+
+        ```bash title="Terminal"
+        cp .env.template .env
+        ```
+
+3.  Atualize a URL do database no arquivo `.env` para a URL do banco de dados de produção. É importante lembrar que o banco de dados deve estar acessível para o backend e que as credenciais de acesso devem ser configuradas corretamente, executar o docker em produção não gerará um banco de dados local. Segue o exemplo do arquivo `.env`:
+
+            ```sh title=".env"
+            # Server log level
+            RUST_LOG=info
+
+            # Database URL of docker container
+            DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres?schema=public
+            ```
+
+4.  Execute o docker-compose para iniciar o servidor do backend:
+
+        ```bash title="Terminal"
+        docker compose -f docker-compose-prod.yml up --build
+        ```
+
+5.  Agora você pode acessar o backend em [http://localhost:3000/](http://localhost:3000/). Ou caso queira acessar a atual documentação swagger do backend, acesse [http://localhost:3000/swagger/#/](http://localhost:3000/swagger/#/).
+
+</Steps>

@@ -5,6 +5,8 @@ sidebar:
 description: Proposta de implementação inicial do sistema.
 ---
 
+Aqui apresentamos a arquitetura proposta para o sistema, que foi elaborada com base nos requisitos identificados e nas tecnologias escolhidas para a implementação. A arquitetura do sistema é composta por diversos componentes que interagem entre si para fornecer a funcionalidade desejada ao usuário. A seguir, apresentamos uma visão geral da arquitetura do sistema e dos componentes que a compõem.
+
 ## Arquitetura do sistema
 
 A arquitetura do sistema é composta por diversos componentes que interagem entre si para fornecer a funcionalidade desejada. A seguir, apresentamos uma visão geral da implementação inicial da arquitetura proposta para o sistema.
@@ -30,3 +32,9 @@ Para elaborar a primeira versão do sistema, foram identificados os [requisitos 
 -   **Sistema de filas**: Para a comunicação entre os serviços de processamento de vídeos e o backend, utilizaremos o [_Kafka_](https://kafka.apache.org/), hospeado no [_Amazon Managed Streaming for Apache Kafka (MSK)_](https://aws.amazon.com/pt/msk/), que é um serviço gerenciado de streaming de dados da [_AWS_](https://aws.amazon.com/) que permite a criação de aplicações de streaming em tempo real de maneira escalável e segura.
 
 -   **Sistema de monitoramento**: Para monitoramento dos sistema, iremos utilizar o [_Sentry_](https://sentry.io/), que é uma plataforma de monitoramento de aplicações que permite a identificação e correção de erros em tempo real, com integração ao [_Slack_](https://slack.com/), para notificação de erros, e ao [_Github_](https://github.com/) para integração com o repositório de código e criação de issues automaticamente a partir dos erros identificados.
+
+## Arquitetura de comunicação entre os componentes
+
+Esta representação visualiza a comunicação entre os componentes do sistema, mostrando como eles interagem entre si para fornecer a funcionalidade desejada ao usuário, não exatamente está seguindo um fluxo com base nas interações do usuário, mas sim como os componentes se comunicam entre si de uma forma geral.
+
+<iframe style={{ border: 'none', height: '450px', width: '800px' }} src="https://whimsical.com/embed/XhQz4Zs8zsh8rCvnSY8Y1e@LUSUr8hW5sUTMjdk5d"></iframe>

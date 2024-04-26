@@ -4,3 +4,83 @@ sidebar:
     order: 2
 description: Configuração do ambiente de desenvolvimento do sistema.
 ---
+
+Para iniciar os serviços do sistema para desenvolvimento, siga as instruções abaixo para cada um dos serviços.
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+## Documentação
+
+Para iniciar o servidor de documentação localmente, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório da documentação:
+
+        ```bash title="Terminal"
+        cd docs
+        ```
+
+2.  Execute o docker-compose para iniciar o servidor de documentação:
+
+        ```bash title="Terminal"
+        docker compose -f docker-compose.yml up --build
+        ```
+
+3.  Agora você pode acessar a documentação em [http://localhost:4321/2024-1B-T02-EC10-G03/](http://localhost:4321/2024-1B-T02-EC10-G03/).
+
+</Steps>
+
+Todas as alterações feitas nos arquivos da documentação serão refletidas automaticamente no servidor de documentação.
+
+## Dashboard
+
+Para iniciar o servidor do dashboard localmente, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório do dashboard:
+
+        ```bash title="Terminal"
+        cd src/dashboard
+        ```
+
+2.  Execute o docker-compose para iniciar o servidor do dashboard:
+
+        ```bash title="Terminal"
+        REACT_NATIVE_PACKAGER_HOSTNAME=$(hostname -I | awk '{print $1}') docker compose -f docker-compose-dev.yml up --build
+        ```
+
+3.  Agora você pode usar o aplicativo do [_Expo Go_](https://expo.dev/go) para acessar o dashboard em seu dispositivo móvel. Abra o aplicativo e escaneie o QR Code exibido no terminal ou acesse o link fornecido, assim você poderá visualizar o dashboard em tempo real.
+
+</Steps>
+
+## Backend
+
+Para iniciar o servidor do backend localmente, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório do backend:
+
+        ```bash title="Terminal"
+        cd src/backend
+        ```
+
+2.  Crie um arquivo `.env` com as variáveis de ambiente necessárias para o backend. Você pode copiar o arquivo de exemplo `.env.template` e ajustar as configurações conforme necessário.
+
+        ```bash title="Terminal"
+        cp .env.template .env
+        ```
+
+3.  Execute o docker-compose para iniciar o servidor do backend:
+
+        ```bash title="Terminal"
+        docker compose -f docker-compose-dev.yml up --build
+        ```
+
+4.  Agora você pode acessar o backend em [http://localhost:3000/](http://localhost:3000/). Ou caso queira acessar a atual documentação swagger do backend, acesse [http://localhost:3000/swagger/#/](http://localhost:3000/swagger/#/).
+
+</Steps>
+
+<Aside>Automaticamente será criado um banco de dados local com as configurações padrão para ambiente de desenvolvimento.</Aside>
