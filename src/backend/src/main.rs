@@ -65,9 +65,10 @@ async fn get_swagger(
 		return Ok(web::HttpResponse::Ok().content_type("application/json").body(spec));
 	}
 	let conf = openapi_conf.as_ref().clone();
-	match utoipa_swagger_ui::serve(&tail, conf.into())
-		.map_err(|err| HttpError { message: format!("Error serving Swagger UI: {}", err), status: http::StatusCode::INTERNAL_SERVER_ERROR })?
-	{
+	match utoipa_swagger_ui::serve(&tail, conf.into()).map_err(|err| HttpError {
+		message: format!("Error serving Swagger UI: {}", err),
+		status: http::StatusCode::INTERNAL_SERVER_ERROR,
+	})? {
 		None => Err(HttpError { status: http::StatusCode::NOT_FOUND, message: format!("path not found: {}", tail) }),
 		Some(file) => Ok({
 			let bytes = Bytes::from(file.bytes.to_vec());
@@ -103,16 +104,11 @@ async fn main() -> std::io::Result<()> {
 	let client = PrismaClient::_builder().build().await.unwrap();
 	info!("Connected to database!");
 
-	println!("Running migrations...");
-
+	info!("Running migrations...");
 	#[cfg(debug_assertions)]
 	client._db_push().await.unwrap();
-
-	println!("Migrating database...");
-
 	#[cfg(not(debug_assertions))]
-	client._migrate_deploy().await?;
-
+	client._migrate_deploy().await.unwrap();
 	info!("Database schema is up to date!");
 
 	let state = Arc::new(AppState::new(client));

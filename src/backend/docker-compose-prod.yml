@@ -12,3 +12,5 @@ services:
             - .cache/cargo-cache:/usr/local/cargo/target
         ports:
             - '3000:3000'
+        env_file:
+          - .env

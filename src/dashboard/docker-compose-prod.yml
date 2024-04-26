@@ -9,6 +9,6 @@ services:
             - .:/usr/src/app
         environment:
             NODE_ENV: production
-            EXPO_TOKEN: ${EXPO_TOKEN}
             EAS_NO_VCS: 1
-            EAS_ID: ${EAS_ID}
+        env_file:
+            - .env
