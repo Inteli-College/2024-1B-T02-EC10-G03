@@ -9,7 +9,7 @@ description: Proposta de implementação inicial do sistema.
 
 A arquitetura do sistema é composta por diversos componentes que interagem entre si para fornecer a funcionalidade desejada. A seguir, apresentamos uma visão geral da implementação inicial da arquitetura proposta para o sistema.
 
-<iframe style={{ border: 'none', height: '450px', width: '800px' }} src="https://whimsical.com/embed/4HMkJ3Q4zUPnk7gNcFxp1t@NKBbAEvLSvA5NWfTA7BSfZqJxwLmCD54W"></iframe>
+<iframe style={{ border: 'none', height: '450px', width: '800px' }} src="https://whimsical.com/embed/4HMkJ3Q4zUPnk7gNcFxp1t@or4CdLRbgiz62x3yPRb4NrzFCJ7MWAVEvUeFewUNs"></iframe>
 
 ## Implementação inicial do sistema
 
@@ -21,7 +21,7 @@ Para elaborar a primeira versão do sistema, foram identificados os [requisitos 
 
 -   **Banco de dados**: O sistema utilizará o [_PostgreSQL_](https://www.postgresql.org/) como banco de dados relacional. O [_PostgreSQL_](https://www.postgresql.org/) é uma escolha adequada para o projeto, pois ofere uma ampla gama de recursos e funcionalidades, além de ser altamente confiável e escalável. Este estará hospedado no [_Amazon Relational Database Service (RDS)_](https://aws.amazon.com/pt/rds/), que é um serviço gerenciado de banco de dados relacional da [_Amazon Web Services (AWS)_](https://aws.amazon.com/). Será utilizado do [_redis_](https://redis.io/) para armazenamento de cache, que será hospedado no [_Amazon ElastiCache_](https://aws.amazon.com/pt/elasticache/), que é um serviço de cache gerenciado da [_AWS_](https://aws.amazon.com/). Também será utilizado o [_Amazon S3_](https://aws.amazon.com/pt/s3/) para armazenamento de arquivos de vídeo e imagem. Além disso, os dados gerados serão disponibilizados no [_Metabase_](https://www.metabase.com/), uma ferramenta de análise de dados e geração de relatórios.
 
--   **Pyxis**: Pretendemos simular o dispensador automático de medicamentos utilizando um [_Raspberry Pi_](https://www.raspberrypi.com/products/raspberry-pi-5/) e um cofre modelado em MDF. Para fazer a conferência dos itens retirados, haverá a uma aplicação utilizando a biblioteca [_OpenCV_](https://opencv.org/) para gravação e envio de imagens para o servidor.
+-   **Pyxis**: Pretendemos simular o dispensador automático de medicamentos utilizando um [_Raspberry Pi_](https://www.raspberrypi.com/products/raspberry-pi-5/) e um cofre modelado em MDF. Para fazer a conferência dos itens retirados, haverá a uma aplicação utilizando a biblioteca [_OpenCV_](https://opencv.org/) para gravação e envio de vídeos para o servidor. O Pyxis terá uma interface gráfica feita em [_Gradio_](https://www.gradio.app/) para facilitar a interação com o usuário, provida por um display touchscreen.
 
 -   **Processador de vídeos**: Para treino, utilizaremos o [_Google Colab_](https://colab.research.google.com/), que é um ambiente de desenvolvimento integrado baseado na nuvem, que permite a execução de códigos em [_Python_](https://www.python.org/) e a utilização da biblioteca do [_Yolo Ultralytics_](https://docs.ultralytics.com/) para processamento de vídeos, e a ferramenta do [_Roboflow_](https://roboflow.com/) para adquirir os datasets. Agora para a implementação do modelo, utilizaremos o [_OpenCV_](https://opencv.org/) para resgatar as imágens, e o próprio [_Yolo Ultralytics_](https://docs.ultralytics.com/) para processar os vídeos.
 
