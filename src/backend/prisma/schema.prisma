@@ -177,7 +177,7 @@ enum PyxisReportType {
     NEEDS_REFILL
 }
 
-enum PyxisReportStatus {
+enum ReportStatus {
     SENT
     RECEIVED
     PENDING
@@ -210,6 +210,7 @@ model PatientReport {
     patientUuid     String
     transaction     Transaction       @relation(fields: [transactionUuid], references: [uuid])
     transactionUuid String
+    status          ReportStatus
     type            PatientReportType
     observation     String
 
