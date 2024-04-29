@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+    metabase:
+        image: metabase/metabase
+        container_name: metabase
+        ports:
+            - '3444:3444'
+        volumes:
+            - ./metabase-data:/metabase-data
+        restart: unless-stopped
+        environment:
+            MB_JETTY_PORT: 3444
