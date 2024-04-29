@@ -1,0 +1,14 @@
+services:
+    dashboard:
+        build:
+            context: .
+            dockerfile: Dockerfile.base
+        command: sh -c "npm install && eas init --force --non-interactive --id ${EAS_ID} && eas build --platform android --non-interactive"
+        tty: true
+        volumes:
+            - .:/usr/src/app
+        environment:
+            NODE_ENV: production
+            EAS_NO_VCS: 1
+        env_file:
+            - .env
