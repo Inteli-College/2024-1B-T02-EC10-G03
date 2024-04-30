@@ -31,10 +31,6 @@
 		{
 			"path": "src/ai_processor",
 			"name": "AI Processor"
-		},
-		{
-			"path": "src/databases",
-			"name": "Databases"
 		}
 	],
 	"settings": {
@@ -46,8 +42,7 @@
 			"dashboard",
 			"metabase",
 			"pyxis",
-			"load_test",
-			"database"
+			"load_test"
 		],
 	},
 	"extensions": {

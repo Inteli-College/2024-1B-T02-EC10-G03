@@ -3,7 +3,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.base
-        command: sh -c "npm install && npm run start --lan"
+        command: sh -c "npm install && npm run start --tunnel"
         tty: true
         volumes:
             - .:/usr/src/app
@@ -11,4 +11,3 @@ services:
             - '8081:8081'
         environment:
             NODE_ENV: development
-            REACT_NATIVE_PACKAGER_HOSTNAME: ${REACT_NATIVE_PACKAGER_HOSTNAME:-host.docker.internal}

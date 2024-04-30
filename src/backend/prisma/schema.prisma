@@ -9,12 +9,13 @@ datasource db {
 }
 
 model Patient {
-    uuid        String        @id @default(uuid())
-    name        String
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
-    deletedAt   DateTime?
-    Transaction Transaction[]
+    uuid          String          @id @default(uuid())
+    name          String
+    createdAt     DateTime        @default(now())
+    updatedAt     DateTime        @updatedAt
+    deletedAt     DateTime?
+    Transaction   Transaction[]
+    PatientReport PatientReport[]
 
     @@index([name])
 }
@@ -34,6 +35,7 @@ model Employee {
     deletedAt             DateTime?
     Transaction           Transaction[]
     OverriddenTransaction OverriddenTransaction[]
+    PyxisReport           PyxisReport[]
 
     @@index([role, name])
 }
@@ -56,6 +58,7 @@ model Medicine {
     Inventory        Inventory[]
     MedicineName     MedicineName? @relation(fields: [medicineNameUuid], references: [uuid])
     medicineNameUuid String?
+    PyxisReport      PyxisReport[]
 
     @@index([externalId])
 }
@@ -78,6 +81,7 @@ model Transaction {
     validation     Validation      @relation(fields: [validationUuid], references: [uuid])
     validationUuid String
     createdAt      DateTime        @default(now())
+    PatientReport  PatientReport[]
 
     @@index([employeeUuid, patientUuid, medicineUuid])
 }
@@ -115,12 +119,13 @@ model Validation {
 }
 
 model Pyxis {
-    uuid       String      @id @default(uuid())
-    floor      Int
-    block      String
-    extra_data Json        @default("{}")
-    createdAt  DateTime    @default(now())
-    Inventory  Inventory[]
+    uuid        String        @id @default(uuid())
+    floor       Int
+    block       String
+    extra_data  Json          @default("{}")
+    createdAt   DateTime      @default(now())
+    Inventory   Inventory[]
+    PyxisReport PyxisReport[]
 
     @@index([floor, block])
 }
@@ -165,4 +170,49 @@ model Log {
     createdAt DateTime @default(now())
 
     @@index([level, event])
+}
+
+enum PyxisReportType {
+    DATA_INCONSISTENCY
+    NEEDS_REFILL
+}
+
+enum ReportStatus {
+    SENT
+    RECEIVED
+    PENDING
+    FINISHED
+}
+
+model PyxisReport {
+    cuid         String          @id @default(cuid())
+    pyxis        Pyxis           @relation(fields: [pyxisUuid], references: [uuid])
+    pyxisUuid    String
+    employee     Employee        @relation(fields: [employeeUuid], references: [uuid])
+    employeeUuid String
+    medicine     Medicine        @relation(fields: [medicineUuid], references: [uuid])
+    medicineUuid String
+    type         PyxisReportType
+    observation  String
+    urgency      Boolean
+
+    @@index([pyxisUuid])
+}
+
+enum PatientReportType {
+    NOT_CONSUMED
+    QUANTITY_MISMATCH
+}
+
+model PatientReport {
+    cuid            String            @id @default(cuid())
+    patient         Patient           @relation(fields: [patientUuid], references: [uuid])
+    patientUuid     String
+    transaction     Transaction       @relation(fields: [transactionUuid], references: [uuid])
+    transactionUuid String
+    status          ReportStatus
+    type            PatientReportType
+    observation     String
+
+    @@index([patientUuid])
 }
