@@ -53,6 +53,11 @@ export default defineConfig({
 							collapsed: true,
 							autogenerate: { directory: 'sprint-1/system' },
 						},
+						{
+							label: 'Review',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-1/review' },
+						},
 					],
 				},
 				{
