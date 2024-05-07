@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     centerButton: {
-        backgroundColor: '#78219C',
+        backgroundColor: '#B26CCF',
         borderRadius: 50,
         width: 70,
         height: 70,

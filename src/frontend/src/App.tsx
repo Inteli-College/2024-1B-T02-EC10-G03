@@ -13,7 +13,6 @@ export default function App() {
 	const [loaded] = useFonts({
 		Inter: require('../assets/fonts/Inter-Regular.ttf'),
 		'Inter-Bold': require('../assets/fonts/Inter-Regular.ttf'),
-		// Adicione outras variantes da fonte Inter, se necessário
 	  });	
 	
 	  if (!loaded) {
