@@ -7,6 +7,8 @@ mod db;
 
 mod error;
 
+mod auth;
+
 use db::*;
 use error::HttpError;
 use ntex::{
@@ -95,6 +97,10 @@ async fn index() -> HttpResponse {
 	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
 }
 
+async fn testing() -> HttpResponse {
+	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
+}
+
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
 	dotenvy::dotenv().ok();
@@ -129,6 +135,9 @@ async fn main() -> std::io::Result<()> {
 					.finish(),
 			)
 			.service(index)
+			.service(web::resource("/users")
+				.route(web::get().to(testing))
+				.wrap(auth::Login))
 	})
 	.bind("0.0.0.0:3000")?
 	.run()
