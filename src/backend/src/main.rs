@@ -10,6 +10,8 @@ mod middlewares;
 mod routes;
 mod utils;
 
+mod auth;
+
 use db::*;
 use dotenvy_macro::dotenv;
 use ntex::{
@@ -60,6 +62,10 @@ async fn index(session_info: features::session::SessionInfo, req: HttpRequest) -
 	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
 }
 
+async fn testing() -> HttpResponse {
+	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
+}
+
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
 	dotenvy::dotenv().ok();
@@ -101,6 +107,9 @@ async fn main() -> std::io::Result<()> {
 			.configure(routes::inventory::inventory_config)
 			.configure(routes::user::user_config)
 			.service(index)
+			.service(web::resource("/users")
+				.route(web::get().to(testing))
+				.wrap(auth::Login))
 	})
 	.bind("0.0.0.0:3000")?
 	.run()
