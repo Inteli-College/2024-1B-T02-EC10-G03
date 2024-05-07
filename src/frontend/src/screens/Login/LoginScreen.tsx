@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput } from "react-native";
 
 const LoginScreen = ({ navigation }) => {
+    
     const [showPassword, setShowPassword] = useState(false);
+
     const handleSignUpPress = () => {
         navigation.navigate('SignUp'); // Navega para a tela de SignUp
     };

@@ -20,7 +20,7 @@ return new Promise((resolve) => {
 };
 
 
-const ReportPage = () => {
+const ReportScreen = () => {
   const [equipment, setEquipment] = useState('');
   const [medication, setMedication] = useState('');
   const [inconsistency, setInconsistency] = useState('');
@@ -154,4 +154,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default ReportPage;
+export default ReportScreen;

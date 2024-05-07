@@ -14,7 +14,8 @@ interface Solicitation {
     responsavel: string;
 }
 
-const SolicitationScreen = () => {
+const SolicitationScreen = ({ navigation }) => {
+
     const [solicitation, setSolicitation] = useState<Solicitation | null>(null);
 
     useEffect(() => {

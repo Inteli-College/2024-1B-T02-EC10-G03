@@ -1,11 +1,20 @@
 import React from 'react';
 import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import SolicitationScreen from 'screens/Solicitation/SolicitationScreen';
 
 const FooterMenu = () => {
+
+    const navigation = useNavigation(); // Use o hook useNavigation aqui
+     
+    const handleSolicitaitonPress = () => {
+        navigation.navigate('Solicitation'); // Navega para a tela de SignUp
+    };
+
     return (
         <View style={styles.bottomMenu}>
-            <TouchableOpacity style={styles.menuButton}>
-                <View style={styles.circle} />
+            <TouchableOpacity style={styles.menuButton} onPress={handleSolicitaitonPress}>
+                <View style={styles.circle}/>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuButton}>
                 <View style={styles.circle} />
