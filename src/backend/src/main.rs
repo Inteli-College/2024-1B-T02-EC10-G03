@@ -36,6 +36,12 @@ struct UserInput {
 	email: String,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct PyxisInput {
+	floor: i32,
+	block: String,
+}
+
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct User {
 	id: i32,
@@ -94,7 +100,26 @@ pub fn ntex_swagger_config(config: &mut web::ServiceConfig) {
 async fn index() -> HttpResponse {
 	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
 }
-
+#[web::get("/pyxis")]
+async fn get_all_pyxis(state: web::types::State<Arc<AppState>>) -> HttpResponse {
+	let pyxis = state.db.pyxis().find_many(vec![]).exec().await.unwrap();
+	HttpResponse::Ok().json(&pyxis)
+}
+#[web::get("/pyxis/{uuid}")]
+async fn get_pyxis(state: web::types::State<Arc<AppState>>, uuid: web::types::Path<String>) -> HttpResponse {
+	let pyxis = state.db.pyxis().find_unique(pyxis::uuid::equals(uuid.into_inner())).exec().await.unwrap();
+	HttpResponse::Ok().json(&pyxis)
+}
+#[web::post("/pyxis")]
+async fn create_pyxis(state: web::types::State<Arc<AppState>>, pyxis: web::types::Json<PyxisInput>) -> HttpResponse {
+	let pyxis = state.db.pyxis().create(pyxis.floor, pyxis.block.to_string(), vec![]).exec().await.unwrap();
+	HttpResponse::Created().json(&pyxis)
+}
+#[web::delete("/pyxis/{uuid}")]
+async fn delete_pyxis(state: web::types::State<Arc<AppState>>, uuid: web::types::Path<String>) -> HttpResponse {
+	let pyxis = state.db.pyxis().delete(pyxis::uuid::equals(uuid.into_inner())).exec().await.unwrap();
+	HttpResponse::Ok().json(&pyxis)
+}
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
 	dotenvy::dotenv().ok();
@@ -128,7 +153,7 @@ async fn main() -> std::io::Result<()> {
 					.max_age(3600)
 					.finish(),
 			)
-			.service(index)
+			.service(index).service(get_all_pyxis).service(create_pyxis).service(delete_pyxis).service(get_pyxis)
 	})
 	.bind("0.0.0.0:3000")?
 	.run()
