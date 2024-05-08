@@ -7,19 +7,22 @@ authors = ["ViniciosLugli <vinicioslugli@gmail.com>"]
 [dependencies]
 ntex = { version = "1.2.1", features = ["tokio"] }
 ntex-cors = "1.0.0"
-serde = { version = "1.0.198", features = ["derive"] }
-serde_json = "1.0.116"
+serde = { version = "1.0.201", features = ["derive"] }
+serde_json = "1.0.117"
 log = "0.4.21"
 pretty_env_logger = "0.5.0"
 dotenvy = "0.15.7"
+dotenvy_macro = "0.15.7"
 prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust", tag = "0.6.11", features = [
 	"postgresql",
 	"migrations",
 	"mocking",
 ] }
 tokio = { version = "1.37.0", features = ["full"] }
-utoipa = "4.2.0"
-utoipa-swagger-ui = "6.0.0"
+utoipa = "4.2.3"
+utoipa-swagger-ui = "7.0.1"
+redis = "0.25.3"
+cookie = "0.18.1"
 
 [workspace]
 resolver = "2"

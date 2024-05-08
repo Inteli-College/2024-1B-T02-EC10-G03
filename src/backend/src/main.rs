@@ -4,31 +4,32 @@ extern crate log;
 
 #[allow(warnings, unused)]
 mod db;
-
 mod error;
-
-mod auth;
+mod middlewares;
 
 use db::*;
+use dotenvy_macro::dotenv;
 use error::HttpError;
 use ntex::{
 	http,
 	util::Bytes,
-	web::{self, middleware, App, HttpResponse},
+	web::{self, middleware, App, Error, HttpRequest, HttpResponse},
 };
 use ntex_cors::Cors;
+use redis;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::sync::Arc;
 use utoipa::{OpenApi, ToSchema};
 
-struct AppState {
+pub struct AppState {
 	db: PrismaClient,
+	redis: redis::Connection,
 }
 
 impl AppState {
-	fn new(db: PrismaClient) -> Self {
-		Self { db }
+	fn new(db: PrismaClient, redis: redis::Connection) -> Self {
+		Self { db, redis }
 	}
 }
 
@@ -67,10 +68,9 @@ async fn get_swagger(
 		return Ok(web::HttpResponse::Ok().content_type("application/json").body(spec));
 	}
 	let conf = openapi_conf.as_ref().clone();
-	match utoipa_swagger_ui::serve(&tail, conf.into()).map_err(|err| HttpError {
-		message: format!("Error serving Swagger UI: {}", err),
-		status: http::StatusCode::INTERNAL_SERVER_ERROR,
-	})? {
+	match utoipa_swagger_ui::serve(&tail, conf.into())
+		.map_err(|err| HttpError { message: format!("Error serving Swagger UI: {}", err), status: http::StatusCode::INTERNAL_SERVER_ERROR })?
+	{
 		None => Err(HttpError { status: http::StatusCode::NOT_FOUND, message: format!("path not found: {}", tail) }),
 		Some(file) => Ok({
 			let bytes = Bytes::from(file.bytes.to_vec());
@@ -93,11 +93,8 @@ pub fn ntex_swagger_config(config: &mut web::ServiceConfig) {
 	),
 )]
 #[web::get("/")]
-async fn index() -> HttpResponse {
-	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
-}
-
-async fn testing() -> HttpResponse {
+async fn index(req: HttpRequest) -> HttpResponse {
+	println!("User ID: {:?}", req.extensions().get::<String>().unwrap());
 	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
 }
 
@@ -107,17 +104,19 @@ async fn main() -> std::io::Result<()> {
 	pretty_env_logger::init();
 
 	info!("Starting server...");
-	let client = PrismaClient::_builder().build().await.unwrap();
+	let database = PrismaClient::_builder().build().await.unwrap();
 	info!("Connected to database!");
 
 	info!("Running migrations...");
 	#[cfg(debug_assertions)]
-	client._db_push().await.unwrap();
+	database._db_push().await.unwrap();
 	#[cfg(not(debug_assertions))]
-	client._migrate_deploy().await.unwrap();
+	database._migrate_deploy().await.unwrap();
 	info!("Database schema is up to date!");
 
-	let state = Arc::new(AppState::new(client));
+	let redis = redis::Client::open(dotenv!("REDIS_URL")).unwrap().get_connection().unwrap();
+
+	let state = Arc::new(AppState::new(database, redis));
 
 	info!("Server is running on http://0.0.0.0:3000");
 	web::server(move || {
@@ -134,10 +133,8 @@ async fn main() -> std::io::Result<()> {
 					.max_age(3600)
 					.finish(),
 			)
+			.wrap(middlewares::auth::Session)
 			.service(index)
-			.service(web::resource("/users")
-				.route(web::get().to(testing))
-				.wrap(auth::Login))
 	})
 	.bind("0.0.0.0:3000")?
 	.run()
@@ -151,7 +148,8 @@ mod tests {
 
 	async fn setup_mock() -> (Arc<AppState>, MockStore) {
 		let (client, mock) = PrismaClient::_mock();
-		let state = Arc::new(AppState::new(client));
+		let redis = redis::Client::open(dotenv!("REDIS_URL")).unwrap().get_connection().unwrap();
+		let state = Arc::new(AppState::new(client, redis));
 		(state, mock)
 	}
 
