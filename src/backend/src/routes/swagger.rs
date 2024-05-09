@@ -18,7 +18,7 @@ struct IndexResponse {
 struct ApiDoc;
 
 #[web::get("/{tail}*")]
-pub async fn get_swagger(
+async fn get_swagger(
 	tail: web::types::Path<String>,
 	openapi_conf: web::types::State<Arc<utoipa_swagger_ui::Config<'static>>>,
 ) -> Result<web::HttpResponse, HttpError> {
