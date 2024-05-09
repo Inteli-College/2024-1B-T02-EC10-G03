@@ -127,6 +127,10 @@ impl SessionCookie {
 		&self.name
 	}
 
+	pub fn get_expires_in(&self) -> Option<Duration> {
+		self.expires_in
+	}
+
 	pub fn set_to_header(&self, value: &str, res: &mut WebResponse) -> Result<(), CookieSessionError> {
 		let mut cookie = Cookie::new(self.name.clone(), value.to_string());
 		cookie.set_path(self.path.clone());

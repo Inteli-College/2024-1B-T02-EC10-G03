@@ -15,6 +15,19 @@ pub struct SessionMiddleware<S> {
 	session: SessionCookie,
 }
 
+impl<S> SessionMiddleware<S> {
+	async fn set_expiration(&self, session_id: &str, redis: &mut redis::aio::MultiplexedConnection) {
+		let _: () = redis
+			.expire(format!("session:{}", session_id), self.session.get_expires_in().unwrap_or(Duration::days(1)).whole_seconds())
+			.await
+			.unwrap();
+	}
+
+	async fn get_user_id(&self, session_id: &str, redis: &mut redis::aio::MultiplexedConnection) -> Option<String> {
+		redis.get(format!("session:{}", session_id)).await.unwrap()
+	}
+}
+
 pub struct SessionMiddlewareBuilder {
 	session: SessionCookie,
 }
@@ -69,21 +82,17 @@ where
 
 			req.extensions_mut().insert(SessionInfo::new(None, session_id.as_ref().unwrap().to_string()));
 		} else {
-			let _: () = redis.expire(session_id.as_ref().unwrap(), Duration::days(1).as_seconds_f64() as i64).await.unwrap();
+			self.set_expiration(session_id.as_ref().unwrap(), &mut redis).await;
 
-			let user_id = redis.get(session_id.as_ref().unwrap()).await;
-			req.extensions_mut().insert(SessionInfo::new(user_id.ok(), session_id.as_ref().unwrap().to_string()));
+			let user_id = self.get_user_id(session_id.as_ref().unwrap(), &mut redis).await;
+			req.extensions_mut().insert(SessionInfo::new(user_id, session_id.as_ref().unwrap().to_string()));
 		}
 
 		let mut res = ctx.call(&self.service, req).await?;
 
 		if let Some(session_id) = session_id {
 			if !has_session_id {
-				if let Err(e) = self.session.set_to_header(&session_id, &mut res) {
-					log::error!("Error setting cookie header: {}", e);
-				} else {
-					info!("Set cookie header: {}", session_id);
-				}
+				self.session.set_to_header(&session_id, &mut res).unwrap();
 			}
 		}
 
