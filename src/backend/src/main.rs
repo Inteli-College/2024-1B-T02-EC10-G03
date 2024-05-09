@@ -7,14 +7,13 @@ mod db;
 mod error;
 mod features;
 mod middlewares;
+mod routes;
 mod utils;
 
 use db::*;
 use dotenvy_macro::dotenv;
-use error::HttpError;
 use ntex::{
 	http,
-	util::Bytes,
 	web::{self, middleware, App, HttpRequest, HttpResponse},
 };
 use ntex_cors::Cors;
@@ -22,7 +21,6 @@ use redis;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::sync::Arc;
-use utoipa::{OpenApi, ToSchema};
 
 pub struct AppState {
 	db: PrismaClient,
@@ -41,61 +39,11 @@ struct UserInput {
 	email: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct PyxisInput {
-	floor: i32,
-	block: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct MedicineInput {
-	name: String,
-}
-
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct User {
 	id: i32,
 	name: String,
 	email: String,
-}
-
-#[derive(ToSchema)]
-struct IndexResponse {
-	message: String,
-}
-
-#[derive(OpenApi)]
-#[openapi(paths(index), components(schemas(IndexResponse, HttpError)))]
-struct ApiDoc;
-
-#[web::get("/{tail}*")]
-async fn get_swagger(
-	tail: web::types::Path<String>,
-	openapi_conf: web::types::State<Arc<utoipa_swagger_ui::Config<'static>>>,
-) -> Result<web::HttpResponse, HttpError> {
-	if tail.as_ref() == "swagger.json" {
-		let spec = ApiDoc::openapi().to_json().map_err(|err| HttpError {
-			status: http::StatusCode::INTERNAL_SERVER_ERROR,
-			message: format!("Error generating OpenAPI spec: {}", err),
-		})?;
-		return Ok(web::HttpResponse::Ok().content_type("application/json").body(spec));
-	}
-	let conf = openapi_conf.as_ref().clone();
-	match utoipa_swagger_ui::serve(&tail, conf.into()).map_err(|err| HttpError {
-		message: format!("Error serving Swagger UI: {}", err),
-		status: http::StatusCode::INTERNAL_SERVER_ERROR,
-	})? {
-		None => Err(HttpError { status: http::StatusCode::NOT_FOUND, message: format!("path not found: {}", tail) }),
-		Some(file) => Ok({
-			let bytes = Bytes::from(file.bytes.to_vec());
-			web::HttpResponse::Ok().content_type(file.content_type).body(bytes)
-		}),
-	}
-}
-
-pub fn ntex_swagger_config(config: &mut web::ServiceConfig) {
-	let swagger_config = Arc::new(utoipa_swagger_ui::Config::new(["/swagger/swagger.json"]).use_base_layout());
-	config.service(web::scope("/swagger/").state(swagger_config).service(get_swagger));
 }
 
 #[utoipa::path(
@@ -111,46 +59,7 @@ async fn index(session_info: features::session::SessionInfo, req: HttpRequest) -
 	info!("SessionInfo: {:?}", session_info);
 	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
 }
-#[web::get("/pyxis")]
-async fn get_all_pyxis(state: web::types::State<Arc<AppState>>) -> HttpResponse {
-	let pyxis = state.db.pyxis().find_many(vec![]).exec().await.unwrap();
-	HttpResponse::Ok().json(&pyxis)
-}
-#[web::get("/pyxis/{uuid}")]
-async fn get_pyxis(state: web::types::State<Arc<AppState>>, uuid: web::types::Path<String>) -> HttpResponse {
-	let pyxis = state.db.pyxis().find_unique(pyxis::uuid::equals(uuid.into_inner())).exec().await.unwrap();
-	HttpResponse::Ok().json(&pyxis)
-}
-#[web::post("/pyxis")]
-async fn create_pyxis(state: web::types::State<Arc<AppState>>, pyxis: web::types::Json<PyxisInput>) -> HttpResponse {
-	let pyxis = state.db.pyxis().create(pyxis.floor, pyxis.block.to_string(), vec![]).exec().await.unwrap();
-	HttpResponse::Created().json(&pyxis)
-}
-#[web::delete("/pyxis/{uuid}")]
-async fn delete_pyxis(state: web::types::State<Arc<AppState>>, uuid: web::types::Path<String>) -> HttpResponse {
-	let pyxis = state.db.pyxis().delete(pyxis::uuid::equals(uuid.into_inner())).exec().await.unwrap();
-	HttpResponse::Ok().json(&pyxis)
-}
-#[web::get("/catalog")]
-async fn get_all_catalog(state: web::types::State<Arc<AppState>>) -> HttpResponse {
-	let medicine = state.db.medicine_name().find_many(vec![]).exec().await.unwrap();
-	HttpResponse::Ok().json(&medicine)
-}
-#[web::get("/catalog/{uuid}")]
-async fn get_catalog(state: web::types::State<Arc<AppState>>, uuid: web::types::Path<String>) -> HttpResponse {
-	let medicine = state.db.medicine_name().find_unique(medicine_name::uuid::equals(uuid.into_inner())).exec().await.unwrap();
-	HttpResponse::Ok().json(&medicine)
-}
-#[web::post("/catalog")]
-async fn create_catalog(state: web::types::State<Arc<AppState>>, medicine: web::types::Json<MedicineInput>) -> HttpResponse {
-	let medicine = state.db.medicine_name().create(medicine.name.to_string(), vec![]).exec().await.unwrap();
-	HttpResponse::Created().json(&medicine)
-}
-#[web::delete("/catalog/{uuid}")]
-async fn delete_catalog(state: web::types::State<Arc<AppState>>, uuid: web::types::Path<String>) -> HttpResponse {
-	let medicine = state.db.medicine_name().delete(medicine_name::uuid::equals(uuid.into_inner())).exec().await.unwrap();
-	HttpResponse::Ok().json(&medicine)
-}
+
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
 	dotenvy::dotenv().ok();
@@ -175,7 +84,6 @@ async fn main() -> std::io::Result<()> {
 	web::server(move || {
 		App::new()
 			.state(state.clone())
-			.configure(ntex_swagger_config)
 			.wrap(middleware::Logger::default())
 			.wrap(
 				Cors::new()
@@ -187,15 +95,16 @@ async fn main() -> std::io::Result<()> {
 					.finish(),
 			)
 			.wrap(middlewares::session::SessionMiddlewareBuilder::new(&[0; 32]))
+			.configure(routes::swagger::swagger_config)
 			.service(index)
-			.service(get_all_pyxis)
-			.service(get_pyxis)
-			.service(create_pyxis)
-			.service(delete_pyxis)
-			.service(get_all_catalog)
-			.service(get_catalog)
-			.service(create_catalog)
-			.service(delete_catalog)
+		//.service(get_all_pyxis)
+		//.service(get_pyxis)
+		//.service(create_pyxis)
+		//.service(delete_pyxis)
+		//.service(get_all_catalog)
+		//.service(get_catalog)
+		//.service(create_catalog)
+		//.service(delete_catalog)
 	})
 	.bind("0.0.0.0:3000")?
 	.run()
