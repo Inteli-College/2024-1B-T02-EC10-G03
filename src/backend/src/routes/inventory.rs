@@ -78,8 +78,7 @@ pub async fn remove_from_inventory(
 		.unwrap()
 		.unwrap()
 		.uuid;
-	info!("Pyxis UUID: {:?}", pyxis_uuid);
-	info!("Medicine ID: {:?}", remove.medicine_id);
+
 	let inventory = state
 		.db
 		.inventory()
