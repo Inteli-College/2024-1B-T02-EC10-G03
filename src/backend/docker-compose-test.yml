@@ -1,6 +1,9 @@
-version: '3.8'
-
 services:
+    redis:
+        extends:
+            file: docker-compose-db.yml
+            service: redis
+
     app:
         build:
             context: .
