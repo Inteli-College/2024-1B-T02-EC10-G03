@@ -24,11 +24,13 @@ enum EmployeeRole {
     NURSE
     PHARMACIST
     IT
+    ADMIN
+    COMMONER
 }
 
 model Employee {
     uuid                  String                  @id @default(uuid())
-    role                  EmployeeRole
+    role                  EmployeeRole            @default(COMMONER)
     name                  String
     createdAt             DateTime                @default(now())
     updatedAt             DateTime                @updatedAt
