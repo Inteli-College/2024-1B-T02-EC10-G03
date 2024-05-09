@@ -1,6 +1,9 @@
+use std::convert::Infallible;
+
 use cookie::{Cookie, CookieJar, Key, SameSite};
 use ntex::http::header::{HeaderValue, SET_COOKIE};
-use ntex::web::WebResponse;
+use ntex::http::Payload;
+use ntex::web::{ErrorRenderer, FromRequest, HttpRequest, WebResponse};
 use serde_json::Error as JsonError;
 use thiserror::Error;
 use time::{Duration, OffsetDateTime};
@@ -22,6 +25,15 @@ impl SessionInfo {
 
 	pub fn get_session_id(&self) -> &str {
 		&self.session_id
+	}
+}
+
+impl<Err: ErrorRenderer> FromRequest<Err> for SessionInfo {
+	type Error = Infallible;
+
+	#[inline]
+	async fn from_request(req: &HttpRequest, _: &mut Payload) -> Result<SessionInfo, Infallible> {
+		Ok(req.extensions().get::<SessionInfo>().unwrap().clone())
 	}
 }
 

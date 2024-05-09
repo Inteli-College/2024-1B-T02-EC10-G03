@@ -107,9 +107,8 @@ pub fn ntex_swagger_config(config: &mut web::ServiceConfig) {
 	),
 )]
 #[web::get("/")]
-async fn index(req: HttpRequest) -> HttpResponse {
-	info!("Request extesions: {:?}", req.extensions());
-	info!("SessionInfo: {:?}", req.extensions().get::<features::session::SessionInfo>());
+async fn index(session_info: features::session::SessionInfo, req: HttpRequest) -> HttpResponse {
+	info!("SessionInfo: {:?}", session_info);
 	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
 }
 #[web::get("/pyxis")]
@@ -189,12 +188,10 @@ async fn main() -> std::io::Result<()> {
 			)
 			.wrap(middlewares::session::SessionMiddlewareBuilder::new(&[0; 32]))
 			.service(index)
-			
 			.service(get_all_pyxis)
 			.service(get_pyxis)
 			.service(create_pyxis)
 			.service(delete_pyxis)
-
 			.service(get_all_catalog)
 			.service(get_catalog)
 			.service(create_catalog)
