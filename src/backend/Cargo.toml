@@ -21,8 +21,11 @@ prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust
 tokio = { version = "1.37.0", features = ["full"] }
 utoipa = "4.2.3"
 utoipa-swagger-ui = "7.0.1"
-redis = "0.25.3"
-cookie = "0.18.1"
+redis = { version = "0.25.3", features = ["tokio-comp"] }
+cookie = { version = "0.18.1", features = ["private", "secure", "signed"] }
+uuid = { version = "1.8.0", features = ["v4", "fast-rng"] }
+time = { version = "0.3.36", default-features = false, features = ["std"] }
+thiserror = "1.0.60"
 
 [workspace]
 resolver = "2"

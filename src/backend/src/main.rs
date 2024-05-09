@@ -5,7 +5,9 @@ extern crate log;
 #[allow(warnings, unused)]
 mod db;
 mod error;
+mod features;
 mod middlewares;
+mod utils;
 
 use db::*;
 use dotenvy_macro::dotenv;
@@ -13,7 +15,7 @@ use error::HttpError;
 use ntex::{
 	http,
 	util::Bytes,
-	web::{self, middleware, App, Error, HttpRequest, HttpResponse},
+	web::{self, middleware, App, HttpRequest, HttpResponse},
 };
 use ntex_cors::Cors;
 use redis;
@@ -24,11 +26,11 @@ use utoipa::{OpenApi, ToSchema};
 
 pub struct AppState {
 	db: PrismaClient,
-	redis: redis::Connection,
+	redis: redis::aio::MultiplexedConnection,
 }
 
 impl AppState {
-	fn new(db: PrismaClient, redis: redis::Connection) -> Self {
+	fn new(db: PrismaClient, redis: redis::aio::MultiplexedConnection) -> Self {
 		Self { db, redis }
 	}
 }
@@ -68,9 +70,10 @@ async fn get_swagger(
 		return Ok(web::HttpResponse::Ok().content_type("application/json").body(spec));
 	}
 	let conf = openapi_conf.as_ref().clone();
-	match utoipa_swagger_ui::serve(&tail, conf.into())
-		.map_err(|err| HttpError { message: format!("Error serving Swagger UI: {}", err), status: http::StatusCode::INTERNAL_SERVER_ERROR })?
-	{
+	match utoipa_swagger_ui::serve(&tail, conf.into()).map_err(|err| HttpError {
+		message: format!("Error serving Swagger UI: {}", err),
+		status: http::StatusCode::INTERNAL_SERVER_ERROR,
+	})? {
 		None => Err(HttpError { status: http::StatusCode::NOT_FOUND, message: format!("path not found: {}", tail) }),
 		Some(file) => Ok({
 			let bytes = Bytes::from(file.bytes.to_vec());
@@ -94,7 +97,8 @@ pub fn ntex_swagger_config(config: &mut web::ServiceConfig) {
 )]
 #[web::get("/")]
 async fn index(req: HttpRequest) -> HttpResponse {
-	println!("User ID: {:?}", req.extensions().get::<String>().unwrap());
+	info!("Request extesions: {:?}", req.extensions());
+	info!("SessionInfo: {:?}", req.extensions().get::<features::session::SessionInfo>());
 	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
 }
 
@@ -114,7 +118,7 @@ async fn main() -> std::io::Result<()> {
 	database._migrate_deploy().await.unwrap();
 	info!("Database schema is up to date!");
 
-	let redis = redis::Client::open(dotenv!("REDIS_URL")).unwrap().get_connection().unwrap();
+	let redis = redis::Client::open(dotenv!("REDIS_URL")).unwrap().get_multiplexed_async_connection().await.unwrap();
 
 	let state = Arc::new(AppState::new(database, redis));
 
@@ -133,7 +137,7 @@ async fn main() -> std::io::Result<()> {
 					.max_age(3600)
 					.finish(),
 			)
-			.wrap(middlewares::auth::Session)
+			.wrap(middlewares::session::SessionMiddlewareBuilder::new(&[0; 32]))
 			.service(index)
 	})
 	.bind("0.0.0.0:3000")?
@@ -148,7 +152,7 @@ mod tests {
 
 	async fn setup_mock() -> (Arc<AppState>, MockStore) {
 		let (client, mock) = PrismaClient::_mock();
-		let redis = redis::Client::open(dotenv!("REDIS_URL")).unwrap().get_connection().unwrap();
+		let redis = redis::Client::open(dotenv!("REDIS_URL")).unwrap().get_multiplexed_async_connection().await.unwrap();
 		let state = Arc::new(AppState::new(client, redis));
 		(state, mock)
 	}
