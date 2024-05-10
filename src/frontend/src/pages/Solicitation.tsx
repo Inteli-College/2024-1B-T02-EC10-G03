@@ -1,29 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Certifique-se de que o pacote de ícones está instalado
+import { Ionicons } from '@expo/vector-icons';
 import FooterMenu from '@components/FooterMenu/FooterMenu';
+
+interface Status {
+	status: string;
+	data: string;
+}
+
+interface Medication {
+	nome: string;
+	quantidade: number;
+}
 
 interface Solicitation {
 	date: string;
 	time: string;
-	// status: string[];
-	// datestatus: string[];
-	statusdict: { status: string; data: string }[];
-	medicacoes: { nome: string; quantidade: number }[];
+	statusdict: Status[];
+	medicacoes: Medication[];
 	inconsistencias: string[];
 	responsavel: string;
 }
 
-const SolicitationScreen = ({ navigation }) => {
+export default function SolicitationPage({ navigation }: { navigation: any }) {
 	const [solicitation, setSolicitation] = useState<Solicitation | null>(null);
 
 	useEffect(() => {
-		// Mock data simulating an API response
 		const mockData: Solicitation = {
 			date: '20/10/2014',
 			time: '14:54',
-			// status: ['Em andamento', 'Report Encerrado', 'Em andamento', 'Em andamento'],
-			// datestatus: ['2024-05-01', '2024-05-02', '2024-05-02', '2024-05-02'],
 			statusdict: [
 				{ status: 'Em andamento', data: '2024-05-02' },
 				{ status: 'Em andamento', data: '2024-05-02' },
@@ -32,7 +37,6 @@ const SolicitationScreen = ({ navigation }) => {
 			],
 			medicacoes: [
 				{ nome: 'Ibuprofeno', quantidade: 2 },
-
 				{ nome: 'Ibuprofeno Pílula', quantidade: 2 },
 			],
 			inconsistencias: ['Nenhuma'],
@@ -41,6 +45,21 @@ const SolicitationScreen = ({ navigation }) => {
 
 		setSolicitation(mockData);
 	}, []);
+
+	const renderStatus = (status: Status, index: number) => (
+		<View key={index} style={styles.statusItem}>
+			<Text style={styles.statusText}>{status.status}</Text>
+			<Text style={styles.datestatusText}>{status.data}</Text>
+		</View>
+	);
+
+	const renderMedication = (med: Medication, index: number) => (
+		<View key={index} style={styles.medicationItem}>
+			<Text style={styles.informationData}>
+				• {med.nome}: {med.quantidade}
+			</Text>
+		</View>
+	);
 
 	return (
 		<>
@@ -60,33 +79,12 @@ const SolicitationScreen = ({ navigation }) => {
 
 							<Text style={styles.content}>
 								Progresso do Pedido:{'\n'}
-								<View style={styles.statusContainer}>
-									{/* {solicitation.status.map((status, index) => (
-                                <View key={index} style={styles.statusItem}>
-                                    <Text style={styles.statusText}>{status}</Text>
-                                    <Text style={styles.dateText}>{solicitation.datestatus[index]}</Text>
-                                </View>
-                            ))} */}
-									{solicitation.statusdict.map((status, index) => (
-										<View key={index} style={styles.statusItem}>
-											<Text style={styles.statusText}>{status.status}</Text>
-											<Text style={styles.datestatusText}>{status.data}</Text>
-										</View>
-									))}
-								</View>
+								<View style={styles.statusContainer}>{solicitation.statusdict.map(renderStatus)}</View>
 							</Text>
 
 							<Text style={styles.content}>
 								Medicações solicitadas:{'\n'}
-								<View style={styles.medicationContainer}>
-									{solicitation.medicacoes.map((med, index) => (
-										<View style={styles.medicationItem}>
-											<Text key={index} style={styles.informationData}>
-												• {med.nome}: {med.quantidade}
-											</Text>
-										</View>
-									))}
-								</View>
+								<View style={styles.medicationContainer}>{solicitation.medicacoes.map(renderMedication)}</View>
 							</Text>
 
 							<Text style={styles.content}>
@@ -108,7 +106,7 @@ const SolicitationScreen = ({ navigation }) => {
 			<FooterMenu />
 		</>
 	);
-};
+}
 
 const styles = StyleSheet.create({
 	container: {
@@ -116,28 +114,23 @@ const styles = StyleSheet.create({
 		padding: 15,
 		top: 60,
 	},
-
 	header: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
-
 	headerTitle: {
 		fontSize: 30,
 		fontWeight: 'bold',
 	},
-
 	backButton: {
 		position: 'absolute',
 		left: 10,
 	},
-
 	informations: {
 		flex: 1,
 		top: 30,
 	},
-
 	content: {
 		marginBottom: 15,
 		borderRadius: 13,
@@ -146,38 +139,31 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: 'gray',
 	},
-
 	statusContainer: {
 		flexDirection: 'row',
 	},
-
 	medicationContainer: {
 		flexDirection: 'column',
 	},
-
 	statusItem: {
 		alignItems: 'center',
 		padding: 8,
 		paddingTop: 10,
 	},
-
 	medicationItem: {
 		marginTop: 15,
 		flexDirection: 'column',
 		alignItems: 'flex-start',
 	},
-
 	statusText: {
 		marginTop: 15,
 		fontWeight: 'bold',
 		fontSize: 11,
 	},
-
 	datestatusText: {
 		fontSize: 9,
 		color: '#666',
 	},
-
 	informationDay: {
 		fontSize: 18,
 		marginVertical: 7,
@@ -185,12 +171,9 @@ const styles = StyleSheet.create({
 		padding: 10,
 		backgroundColor: '#F6F6F6',
 	},
-
 	informationData: {
 		fontSize: 16,
 		margin: 5,
 		color: 'black',
 	},
 });
-
-export default SolicitationScreen;

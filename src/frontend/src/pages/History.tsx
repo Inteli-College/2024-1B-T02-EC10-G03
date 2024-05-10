@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
-import DropdownComponent from '../../components/DropdownComponent/DropdownComponents';
+import DropdownComponent from '@components/DropdownComponent/DropdownComponents';
 import FooterMenu from '@components/FooterMenu/FooterMenu';
 
 const data = [
@@ -15,40 +15,39 @@ const historyItems = [
 	{ name: 'Item 2', details: 'Detalhes', key: '2' },
 ];
 
-export default function History() {
-	const renderItem = ({ item }: { item: { title: string; subtitle: string } }) => (
-		<View style={styles.card}>
-			<Text style={styles.title}>{item.title}</Text>
-			<Text style={styles.subtitle}>{item.subtitle}</Text>
-		</View>
-	);
+const HistoryCard = ({ title, subtitle }: { title: string; subtitle: string }) => (
+	<View style={styles.card}>
+		<Text style={styles.title}>{title}</Text>
+		<Text style={styles.subtitle}>{subtitle}</Text>
+	</View>
+);
 
-	const renderHistoryItem = ({ item }: { item: { name: string; details: string } }) => (
-		<View style={styles.historyItem}>
-			<Text style={styles.historyName}>{item.name}</Text>
-			<Text style={styles.historyDetails}>{item.details}</Text>
-		</View>
-	);
+const HistoryItem = ({ name, details }: { name: string; details: string }) => (
+	<View style={styles.historyItem}>
+		<Text style={styles.historyName}>{name}</Text>
+		<Text style={styles.historyDetails}>{details}</Text>
+	</View>
+);
 
+export default function HistoryPage() {
 	return (
 		<>
 			<View style={styles.container}>
 				<Text style={styles.header}>Meu Histórico</Text>
+				<DropdownComponent />
 
-				<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-					<DropdownComponent />
-				</View>
+				<FlatList
+					data={data}
+					renderItem={({ item }) => <HistoryCard title={item.title} subtitle={item.subtitle} />}
+					keyExtractor={(item) => item.key}
+					numColumns={2}
+					columnWrapperStyle={styles.columnWrapper}
+				/>
 
-				<FlatList data={data} renderItem={renderItem} keyExtractor={(item) => item.key} horizontal={false} numColumns={2} columnWrapperStyle={styles.columnWrapper} />
-				<View style={{ justifyContent: 'center', alignItems: 'center' }}>
-					<Text>Solicitações Feitas</Text>
-				</View>
+				<Text style={styles.subHeader}>Solicitações Feitas</Text>
+				<FlatList data={historyItems} renderItem={({ item }) => <HistoryItem name={item.name} details={item.details} />} keyExtractor={(item) => item.key} style={styles.historyList} />
 
-				<View style={styles.historyList}>
-					<FlatList data={historyItems} renderItem={renderHistoryItem} keyExtractor={(item) => item.key} />
-				</View>
-
-				<TouchableOpacity style={styles.reportButton}>
+				<TouchableOpacity style={styles.reportButton} onPress={() => alert('Reportar clicked!')}>
 					<Text style={styles.reportButtonText}>Reportar Inconsistências</Text>
 				</TouchableOpacity>
 			</View>
@@ -69,23 +68,29 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginBottom: 16,
 	},
+	subHeader: {
+		fontSize: 18,
+		textAlign: 'center',
+		marginTop: 20,
+		marginBottom: 10,
+	},
 	card: {
 		flex: 1,
 		backgroundColor: '#F2F2F2',
 		margin: 8,
 		padding: 16,
 		borderRadius: 8,
-		alignItems: 'center', // Centers children along the cross axis (horizontally)
+		alignItems: 'center',
 	},
 	title: {
 		fontSize: 18,
 		fontWeight: 'bold',
-		textAlign: 'center', // Align text in the center horizontally
+		textAlign: 'center',
 	},
 	subtitle: {
 		fontSize: 14,
 		color: '#888888',
-		textAlign: 'center', // Ensure the subtitle text is also centered
+		textAlign: 'center',
 	},
 	columnWrapper: {
 		justifyContent: 'space-between',
@@ -102,10 +107,10 @@ const styles = StyleSheet.create({
 		paddingVertical: 8,
 	},
 	historyName: {
-		color: '#9B59B6', // Purple
+		color: '#9B59B6',
 	},
 	historyDetails: {
-		color: '#9B59B6', // Purple
+		color: '#9B59B6',
 	},
 	reportButton: {
 		marginTop: 16,

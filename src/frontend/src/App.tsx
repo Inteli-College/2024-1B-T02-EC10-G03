@@ -1,21 +1,21 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from './screens/Home/HomeScreen';
-import LoginScreen from './screens/Login/LoginScreen';
-import SignUpScreen from './screens/SignUp/SignUpScreen';
-import QRScannerScreen from './screens/QRScannerScreen/QRScannerScreen';
-import ReportScreen from './screens/Report/ReportScreen';
-import SolicitationScreen from './screens/Solicitation/SolicitationScreen';
-import History from './screens/History/History';
+import HomePage from '@pages/Home';
+import LoginPage from '@pages/SignIn';
+import SignUpPage from '@pages/SignUp';
+import QRScannerPage from '@pages/QRScanner';
+import ReportPage from '@pages/Report';
+import SolicitationPage from '@pages/Solicitation';
+import HistoryPage from '@pages/History';
 import { useFonts } from 'expo-font';
 
 const Stack = createStackNavigator();
 
 export default function App() {
 	const [loaded] = useFonts({
-		Inter: require('../assets/fonts/Inter-Regular.ttf'),
-		'Inter-Bold': require('../assets/fonts/Inter-Regular.ttf'),
+		Inter: require('@assets/fonts/Inter-Regular.ttf'),
+		'Inter-Bold': require('@assets/fonts/Inter-Bold.ttf'),
 	});
 
 	if (!loaded) {
@@ -25,13 +25,13 @@ export default function App() {
 	return (
 		<NavigationContainer>
 			<Stack.Navigator>
-				<Stack.Screen name="Home" component={HomeScreen} />
-				<Stack.Screen name="Login" component={LoginScreen} />
-				<Stack.Screen name="SignUp" component={SignUpScreen} />
-				<Stack.Screen name="QRScanner" component={QRScannerScreen} />
-				<Stack.Screen name="Report" component={ReportScreen} />
-				<Stack.Screen name="Solicitation" component={SolicitationScreen} />
-				<Stack.Screen name="History" component={History} />
+				<Stack.Screen name="Home" component={HomePage} />
+				<Stack.Screen name="Login" component={LoginPage} />
+				<Stack.Screen name="SignUp" component={SignUpPage} />
+				<Stack.Screen name="QRScanner" component={QRScannerPage} />
+				<Stack.Screen name="Report" component={ReportPage} />
+				<Stack.Screen name="Solicitation" component={SolicitationPage} />
+				<Stack.Screen name="History" component={HistoryPage} />
 			</Stack.Navigator>
 		</NavigationContainer>
 	);
