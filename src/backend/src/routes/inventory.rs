@@ -10,11 +10,6 @@ struct ModifyInventoryInput {
 	quantity: i32,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct DeleteInventoryInput {
-	medicine_id: String,
-}
-
 #[web::post("/add/{pyxis_id}")]
 pub async fn add_to_inventory(
 	state: web::types::State<Arc<Mutex<AppState>>>,
@@ -119,16 +114,17 @@ pub async fn remove_from_inventory(
 	}
 }
 
-#[web::delete("/{pyxis_id}")]
+#[web::delete("/{pyxis_id}/{medicine_id}")]
 pub async fn delete_from_inventory(
 	state: web::types::State<Arc<Mutex<AppState>>>,
-	delete: web::types::Json<DeleteInventoryInput>,
-	pyxis_id: web::types::Path<String>,
+	params: web::types::Path<(String, String)>,
 ) -> Result<web::HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
-	let id_string = pyxis_id.into_inner();
-	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
-	let (floor, block) = id_string.split_at(position);
+	let pyxis_id = &params.0;
+	let medicine_id = &params.1;
+
+	let position = pyxis_id.chars().position(|c| c.is_alphabetic()).unwrap();
+	let (floor, block) = pyxis_id.split_at(position);
 
 	let pyxis_uuid = app_state
 		.db
@@ -143,12 +139,11 @@ pub async fn delete_from_inventory(
 		None => return Err(HttpError::not_found("Pyxis not found")),
 	};
 
-	let inventory =
-		app_state.db.inventory().delete(inventory::pyxis_uuid_medicine_id(pyxis_uuid.clone(), delete.medicine_id.to_string())).exec().await;
+	let inventory = app_state.db.inventory().delete(inventory::pyxis_uuid_medicine_id(pyxis_uuid.clone(), medicine_id.to_string())).exec().await;
 
 	let inventory = match inventory {
 		Ok(inventory) => inventory,
-		Err(_) => return Err(HttpError::internal_server_error("Error deleting from inventory")),
+		Err(_) => return Err(HttpError::not_found("Medicine not found in Pyxis")),
 	};
 
 	Ok(HttpResponse::Ok().json(&inventory))
