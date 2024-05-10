@@ -11,16 +11,25 @@ const FooterMenu = () => {
         navigation.navigate('Solicitation'); // Navega para a tela de SignUp
     };
 
+    const handleHistoryPress = () => {
+        navigation.navigate('History'); // Navega para a tela de SignUp
+    };
+
+    const handleScannerPress = () => {
+        navigation.navigate('QRScanner'); // Navega para a tela de SignUp
+    };
+
+
     return (
         <View style={styles.bottomMenu}>
             <TouchableOpacity style={styles.menuButton} onPress={handleSolicitaitonPress}>
                 <View style={styles.circle}/>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuButton}>
-                <View style={styles.circle} />
+            <TouchableOpacity style={styles.menuButton} onPress={handleHistoryPress}>
+                <View style={styles.circle}/>
             </TouchableOpacity>
             <View style={styles.centerButtonContainer}>
-                <TouchableOpacity style={styles.centerButton}>
+                <TouchableOpacity style={styles.centerButton} onPress={handleScannerPress}>
                     <Image source={require('../../../assets/img/qrcode.png')} style={styles.qrCodeImage} />
                 </TouchableOpacity>
             </View>

@@ -5,21 +5,25 @@ import HomeScreen from './screens/Home/HomeScreen';
 import LoginScreen from './screens/Login/LoginScreen';
 import SignUpScreen from './screens/SignUp/SignUpScreen';
 import QRScannerScreen from './screens/QRScannerScreen/QRScannerScreen';
-import ReportScreen from 'screens/Report/ReportScreen';
-import SolicitationScreen from 'screens/Solicitation/SolicitationScreen';
+import ReportScreen from './screens/Report/ReportScreen';
+import SolicitationScreen from './screens/Solicitation/SolicitationScreen';
+import History from './screens/History/History';
 import { useFonts } from 'expo-font';
 
 const Stack = createStackNavigator();
 
+
 export default function App() {
-	const [loaded] = useFonts({
-		Inter: require('../assets/fonts/Inter-Regular.ttf'),
-		'Inter-Bold': require('../assets/fonts/Inter-Regular.ttf'),
-	  });	
-	
-	  if (!loaded) {
-		return null;
-	  }
+  const [loaded] = useFonts({
+    Inter: require('../assets/fonts/Inter-Regular.ttf'),
+    'Inter-Bold': require('../assets/fonts/Inter-Regular.ttf'),
+  });
+
+  global.API_URL="http://0.tcp.sa.ngrok.io:12109"
+  console.log("API_URL: ", global.API_URL)
+  if (!loaded) {
+    return null;
+  }
 
   return (
     <NavigationContainer>
@@ -29,7 +33,8 @@ export default function App() {
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="QRScanner" component={QRScannerScreen} />
         <Stack.Screen name='Report' component={ReportScreen} />
-        <Stack.Screen name='Solicitation' component={SolicitationScreen} />        
+        <Stack.Screen name='Solicitation' component={SolicitationScreen} />
+        <Stack.Screen name='History' component={History} />
       </Stack.Navigator>
     </NavigationContainer>
   );

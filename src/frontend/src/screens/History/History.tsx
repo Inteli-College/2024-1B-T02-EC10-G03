@@ -1,6 +1,7 @@
-import DropdownComponent from '@components/DropdownComponent';
 import React from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import DropdownComponent from '../../components/DropdownComponent/DropdownComponents';
+import FooterMenu from '@components/FooterMenu/FooterMenu';
 
 const data = [
   { title: 'Dipirona XXmg', subtitle: 'Medicamento mais Frequente', key: '1' },
@@ -14,7 +15,7 @@ const historyItems = [
   { name: 'Item 2', details: 'Detalhes', key: '2' },
 ];
 
-export default function MeuHistorico() {
+export default function History() {
 const renderItem = ({ item }: { item: { title: string, subtitle: string } }) => (
 	<View style={styles.card}>
 		<Text style={styles.title}>{item.title}</Text>
@@ -30,6 +31,7 @@ const renderHistoryItem = ({ item }: { item: { name: string, details: string } }
 );
 
   return (
+    <>
     <View style={styles.container}>
       <Text style={styles.header}>Meu Histórico</Text>
 
@@ -61,14 +63,17 @@ const renderHistoryItem = ({ item }: { item: { name: string, details: string } }
       <TouchableOpacity style={styles.reportButton}>
         <Text style={styles.reportButtonText}>Reportar Inconsistências</Text>
       </TouchableOpacity>
+      
     </View>
+    <FooterMenu />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 10,
     backgroundColor: '#FFFFFF',
   },
   header: {
@@ -99,7 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   historyList: {
-    marginTop: 16,
+    marginTop: 10,
     backgroundColor: '#F2F2F2',
     borderRadius: 8,
     padding: 16,
@@ -117,6 +122,7 @@ const styles = StyleSheet.create({
   },
   reportButton: {
     marginTop: 16,
+    marginBottom:40,
     backgroundColor: '#9B59B6',
     paddingVertical: 16,
     borderRadius: 8,

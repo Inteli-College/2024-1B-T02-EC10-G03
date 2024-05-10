@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Certifique-se de que o pacote de ícones está instalado
+import FooterMenu from '@components/FooterMenu/FooterMenu';
 
 interface Solicitation {
 
@@ -44,6 +45,7 @@ const SolicitationScreen = ({ navigation }) => {
     }, []);
 
     return (
+        <>
         <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => Alert.alert('Back pressed')} style={styles.backButton}>
@@ -95,6 +97,8 @@ const SolicitationScreen = ({ navigation }) => {
                 )}
             </ScrollView>
         </View>
+        <FooterMenu/>
+        </>
     );
 };
 
@@ -127,7 +131,7 @@ const styles = StyleSheet.create({
     },
 
     content: {
-        marginBottom: 10,
+        marginBottom: 15,
         borderRadius: 13,
         padding: 10,
         backgroundColor: '#F6F6F6',
@@ -150,11 +154,13 @@ const styles = StyleSheet.create({
    },
 
    medicationItem: {
+        marginTop: 15,
         flexDirection: 'column',
         alignItems: 'flex-start',
    },
 
     statusText: {
+        marginTop:15,
         fontWeight: 'bold',
         fontSize: 11,
     },
