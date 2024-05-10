@@ -1,4 +1,4 @@
-use crate::{db::*, features, AppState};
+use crate::{db::*, error::HttpError, features, AppState};
 use ntex::web::{self, HttpResponse};
 use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
@@ -41,7 +41,7 @@ fn fetch_role(role: String) -> Result<EmployeeRole, &'static str> {
 pub async fn register_employee(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	payload: web::types::Json<RegisterEmployeeInput>,
-) -> HttpResponse {
+) -> Result<web::HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 	let role = fetch_role(payload.role.clone()).unwrap();
 	let employee = app_state
@@ -49,27 +49,29 @@ pub async fn register_employee(
 		.employee()
 		.create(payload.name.clone(), payload.email.clone(), payload.password.clone(), vec![employee::role::set(role)])
 		.exec()
-		.await
-		.unwrap();
+		.await;
 
-	HttpResponse::Created().json(&employee)
+	if employee.is_err() {
+		return Err(HttpError::internal_server_error("Error creating employee"));
+	}
+
+	Ok(HttpResponse::Created().json(&employee))
 }
 
 #[web::post("/register/patient")]
 pub async fn register_patient(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	payload: web::types::Json<RegisterPatientInput>,
-) -> HttpResponse {
+) -> Result<web::HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
-	let patient = app_state
-		.db
-		.patient()
-		.create(payload.name.clone(), payload.email.clone(), payload.password.clone(), vec![])
-		.exec()
-		.await
-		.unwrap();
+	let patient =
+		app_state.db.patient().create(payload.name.clone(), payload.email.clone(), payload.password.clone(), vec![]).exec().await;
 
-	HttpResponse::Created().json(&patient)
+	if patient.is_err() {
+		return Err(HttpError::internal_server_error("Error creating patient"));
+	}
+
+	Ok(HttpResponse::Created().json(&patient))
 }
 
 #[web::post("/login")]
@@ -77,7 +79,7 @@ pub async fn login(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	session_info: features::session::SessionInfo,
 	payload: web::types::Json<LoginInput>,
-) -> HttpResponse {
+) -> Result<web::HttpResponse, HttpError> {
 	let mut app_state = state.lock().unwrap();
 	let mut user = json!({});
 
@@ -99,7 +101,7 @@ pub async fn login(
 			.unwrap();
 
 		if patient.is_none() {
-			return HttpResponse::Unauthorized().json(&json!({ "message": "Invalid credentials" }));
+			return Err(HttpError::unauthorized("Invalid credentials"));
 		}
 
 		user = serde_json::to_value(&patient.unwrap()).unwrap();
@@ -113,15 +115,18 @@ pub async fn login(
 		.await
 		.unwrap();
 
-	HttpResponse::Ok().json(&user)
+	Ok(HttpResponse::Ok().json(&user))
 }
 
 #[web::get("/info")]
-pub async fn info(session_info: features::session::SessionInfo, state: web::types::State<Arc<Mutex<AppState>>>) -> HttpResponse {
+pub async fn info(
+	session_info: features::session::SessionInfo,
+	state: web::types::State<Arc<Mutex<AppState>>>,
+) -> Result<web::HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 
 	if session_info.get_user_id().is_none() {
-		return HttpResponse::Unauthorized().json(&json!({ "message": "Invalid credentials" }));
+		return Err(HttpError::unauthorized("Invalid credentials"));
 	}
 
 	let mut user = json!({});
@@ -135,7 +140,7 @@ pub async fn info(session_info: features::session::SessionInfo, state: web::type
 		let patient = app_state.db.patient().find_unique(patient::uuid::equals(user_uuid.clone())).exec().await.unwrap();
 
 		if patient.is_none() {
-			return HttpResponse::Unauthorized().json(&json!({ "message": "Invalid credentials" }));
+			return Err(HttpError::unauthorized("Invalid credentials"));
 		}
 
 		user = serde_json::to_value(&patient.unwrap()).unwrap();
@@ -143,7 +148,7 @@ pub async fn info(session_info: features::session::SessionInfo, state: web::type
 		user = serde_json::to_value(&employee.unwrap()).unwrap();
 	}
 
-	HttpResponse::Ok().json(&user)
+	Ok(HttpResponse::Ok().json(&user))
 }
 
 pub fn user_config(config: &mut web::ServiceConfig) {

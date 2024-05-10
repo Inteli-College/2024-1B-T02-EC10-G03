@@ -1,8 +1,7 @@
-use crate::{db::*, AppState};
+use crate::{db::*, error::HttpError, AppState};
 use chrono::{FixedOffset, Utc};
 use ntex::web::{self, HttpResponse};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::sync::{Arc, Mutex};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -21,21 +20,24 @@ pub async fn add_to_inventory(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	add: web::types::Json<ModifyInventoryInput>,
 	pyxis_id: web::types::Path<String>,
-) -> HttpResponse {
+) -> Result<web::HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 	let id_string = pyxis_id.into_inner();
 	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
 	let (floor, block) = id_string.split_at(position);
 
-	let pyxis_uuid = app_state
+	let pyxis = app_state
 		.db
 		.pyxis()
 		.find_first(vec![pyxis::floor::equals(floor.parse().unwrap()), pyxis::block::equals(block.to_string())])
 		.exec()
 		.await
-		.unwrap()
-		.unwrap()
-		.uuid;
+		.unwrap();
+
+	let pyxis_uuid = match pyxis {
+		Some(pyxis) => pyxis.uuid,
+		None => return Err(HttpError::not_found("Pyxis not found")),
+	};
 
 	let inventory = app_state
 		.db
@@ -54,10 +56,14 @@ pub async fn add_to_inventory(
 			],
 		)
 		.exec()
-		.await
-		.unwrap();
+		.await;
 
-	HttpResponse::Created().json(&inventory)
+	let inventory = match inventory {
+		Ok(inventory) => inventory,
+		Err(_) => return Err(HttpError::internal_server_error("Error adding to inventory")),
+	};
+
+	Ok(HttpResponse::Created().json(&inventory))
 }
 
 #[web::post("remove/{pyxis_id}")]
@@ -65,21 +71,24 @@ pub async fn remove_from_inventory(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	remove: web::types::Json<ModifyInventoryInput>,
 	pyxis_id: web::types::Path<String>,
-) -> HttpResponse {
+) -> Result<web::HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 	let id_string = pyxis_id.into_inner();
 	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
 	let (floor, block) = id_string.split_at(position);
 
-	let pyxis_uuid = app_state
+	let pyxis = app_state
 		.db
 		.pyxis()
 		.find_first(vec![pyxis::floor::equals(floor.parse().unwrap()), pyxis::block::equals(block.to_string())])
 		.exec()
 		.await
-		.unwrap()
-		.unwrap()
-		.uuid;
+		.unwrap();
+
+	let pyxis_uuid = match pyxis {
+		Some(pyxis) => pyxis.uuid,
+		None => return Err(HttpError::not_found("Pyxis not found")),
+	};
 
 	let inventory = app_state
 		.db
@@ -94,11 +103,11 @@ pub async fn remove_from_inventory(
 
 	let inventory_quantity = match inventory {
 		Some(inventory) => inventory.quantity,
-		None => return HttpResponse::BadRequest().json(&json!({ "message": "Medicine not found in inventory" })),
+		None => return Err(HttpError::not_found("Pyxis inventory not found")),
 	};
 
 	if inventory_quantity < remove.quantity {
-		return HttpResponse::BadRequest().json(&json!({ "message": "Not enough quantity in inventory" }));
+		return Err(HttpError::bad_request("Not enough medicine in inventory to remove"));
 	} else {
 		let inventory = app_state
 			.db
@@ -114,7 +123,7 @@ pub async fn remove_from_inventory(
 			.await
 			.unwrap();
 
-		HttpResponse::Created().json(&inventory)
+		Ok(HttpResponse::Created().json(&inventory))
 	}
 }
 
@@ -123,7 +132,7 @@ pub async fn delete_from_inventory(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	delete: web::types::Json<DeleteInventoryInput>,
 	pyxis_id: web::types::Path<String>,
-) -> HttpResponse {
+) -> Result<web::HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 	let id_string = pyxis_id.into_inner();
 	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
@@ -135,9 +144,12 @@ pub async fn delete_from_inventory(
 		.find_first(vec![pyxis::floor::equals(floor.parse().unwrap()), pyxis::block::equals(block.to_string())])
 		.exec()
 		.await
-		.unwrap()
-		.unwrap()
-		.uuid;
+		.unwrap();
+
+	let pyxis_uuid = match pyxis_uuid {
+		Some(pyxis) => pyxis.uuid,
+		None => return Err(HttpError::not_found("Pyxis not found")),
+	};
 
 	let inventory = app_state
 		.db
@@ -147,11 +159,14 @@ pub async fn delete_from_inventory(
 		.await
 		.unwrap();
 
-	HttpResponse::Ok().json(&inventory)
+	Ok(HttpResponse::Ok().json(&inventory))
 }
 
 #[web::get("/{id}")]
-pub async fn get_from_inventory(state: web::types::State<Arc<Mutex<AppState>>>, id: web::types::Path<String>) -> HttpResponse {
+pub async fn get_from_inventory(
+	state: web::types::State<Arc<Mutex<AppState>>>,
+	id: web::types::Path<String>,
+) -> Result<web::HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 	let id_string = id.into_inner();
 	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
@@ -164,11 +179,14 @@ pub async fn get_from_inventory(state: web::types::State<Arc<Mutex<AppState>>>, 
 		.with(pyxis::inventory::fetch(vec![]))
 		.exec()
 		.await
-		.unwrap()
-		.unwrap()
-		.inventory;
+		.unwrap();
 
-	HttpResponse::Ok().json(&pyxis)
+	let pyxis = match pyxis {
+		Some(pyxis) => pyxis,
+		None => return Err(HttpError::not_found("Pyxis not found")),
+	};
+
+	Ok(HttpResponse::Ok().json(&pyxis.inventory))
 }
 
 pub fn inventory_config(config: &mut web::ServiceConfig) {
