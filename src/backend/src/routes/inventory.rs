@@ -171,11 +171,15 @@ pub async fn get_from_inventory(
 	let id_string = id.into_inner();
 	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
 	let (floor, block) = id_string.split_at(position);
+	let floor: i32 = match floor.parse::<i32>() {
+		Ok(floor) => floor,
+		Err(_) => return Err(HttpError::bad_request("Invalid floor number")),
+	};
 
 	let pyxis = app_state
 		.db
 		.pyxis()
-		.find_first(vec![pyxis::floor::equals(floor.parse().unwrap()), pyxis::block::equals(block.to_string())])
+		.find_first(vec![pyxis::floor::equals(floor), pyxis::block::equals(block.to_string())])
 		.with(pyxis::inventory::fetch(vec![]))
 		.exec()
 		.await
