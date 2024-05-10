@@ -14,12 +14,10 @@ use db::*;
 use dotenvy_macro::dotenv;
 use ntex::{
 	http,
-	web::{self, middleware, App, HttpRequest, HttpResponse},
+	web::{self, middleware, App},
 };
 use ntex_cors::Cors;
 use redis;
-use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::sync::{Arc, Mutex};
 
 pub struct AppState {
@@ -31,44 +29,6 @@ impl AppState {
 	fn new(db: PrismaClient, redis: redis::aio::MultiplexedConnection) -> Self {
 		Self { db, redis }
 	}
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct UserInput {
-	name: String,
-	email: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct PyxisInput {
-	floor: i32,
-	block: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct MedicineInput {
-	name: String,
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct User {
-	id: i32,
-	name: String,
-	email: String,
-}
-
-#[utoipa::path(
-	get,
-	path = "/",
-	responses(
-		(status = 200, description = "Success", body = IndexResponse),
-		(status = 500, description = "Internal server error", body = HttpError)
-	),
-)]
-#[web::get("/")]
-async fn index(session_info: features::session::SessionInfo, req: HttpRequest) -> HttpResponse {
-	info!("SessionInfo: {:?}", session_info);
-	HttpResponse::Ok().json(&json!({ "message": "Hello world!" }))
 }
 
 #[ntex::main]
@@ -106,45 +66,14 @@ async fn main() -> std::io::Result<()> {
 					.finish(),
 			)
 			.wrap(middlewares::session::SessionMiddlewareBuilder::new(&[0; 32]))
-			.configure(routes::swagger::swagger_config)
-			.configure(routes::pyxis::pyxis_config)
-			.configure(routes::medicine::medicine_config)
-			.configure(routes::inventory::inventory_config)
-			.configure(routes::user::user_config)
-			.service(index)
+			.configure(routes::swagger::init)
+			.configure(routes::pyxis::init)
+			.configure(routes::medicine::init)
+			.configure(routes::inventory::init)
+			.configure(routes::user::init)
+			.configure(routes::status::init)
 	})
 	.bind("0.0.0.0:3000")?
 	.run()
 	.await
-}
-#[cfg(test)]
-mod tests {
-	use super::*;
-	use ntex::web::{test, App, Error};
-	use prisma_client_rust::MockStore;
-
-	async fn setup_mock() -> (Arc<AppState>, MockStore) {
-		let (client, mock) = PrismaClient::_mock();
-		let redis = redis::Client::open(dotenv!("REDIS_URL")).unwrap().get_multiplexed_async_connection().await.unwrap();
-		let state = Arc::new(AppState::new(client, redis));
-		(state, mock)
-	}
-
-	#[ntex::test]
-	async fn test_index() -> Result<(), Error> {
-		let app = App::new().service(index);
-		let app = test::init_service(app).await;
-
-		let req = test::TestRequest::get().uri("/").to_request();
-		let resp = app.call(req).await.unwrap();
-
-		assert_eq!(resp.status(), http::StatusCode::OK);
-
-		let bytes = test::read_body(resp).await;
-
-		let json = serde_json::from_slice::<serde_json::Value>(&bytes)?;
-		assert_eq!(json, json!({ "message": "Hello world!" }));
-
-		Ok(())
-	}
 }

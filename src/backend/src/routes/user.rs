@@ -41,7 +41,7 @@ fn fetch_role(role: String) -> Result<EmployeeRole, &'static str> {
 pub async fn register_employee(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	payload: web::types::Json<RegisterEmployeeInput>,
-) -> Result<web::HttpResponse, HttpError> {
+) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 	let role = fetch_role(payload.role.clone()).unwrap();
 	let employee = app_state
@@ -55,14 +55,18 @@ pub async fn register_employee(
 		return Err(HttpError::internal_server_error("Error creating employee"));
 	}
 
-	Ok(HttpResponse::Created().json(&employee))
+	let mut response = serde_json::to_value(&employee.unwrap()).unwrap().as_object().unwrap().clone();
+
+	response.remove("password").unwrap();
+
+	Ok(HttpResponse::Created().json(&response))
 }
 
 #[web::post("/register/patient")]
 pub async fn register_patient(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	payload: web::types::Json<RegisterPatientInput>,
-) -> Result<web::HttpResponse, HttpError> {
+) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 	let patient =
 		app_state.db.patient().create(payload.name.clone(), payload.email.clone(), payload.password.clone(), vec![]).exec().await;
@@ -71,7 +75,11 @@ pub async fn register_patient(
 		return Err(HttpError::internal_server_error("Error creating patient"));
 	}
 
-	Ok(HttpResponse::Created().json(&patient))
+	let mut response = serde_json::to_value(&patient.unwrap()).unwrap().as_object().unwrap().clone();
+
+	response.remove("password").unwrap();
+
+	Ok(HttpResponse::Created().json(&response))
 }
 
 #[web::post("/login")]
@@ -79,7 +87,7 @@ pub async fn login(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	session_info: features::session::SessionInfo,
 	payload: web::types::Json<LoginInput>,
-) -> Result<web::HttpResponse, HttpError> {
+) -> Result<HttpResponse, HttpError> {
 	let mut app_state = state.lock().unwrap();
 	let mut user = json!({});
 
@@ -115,14 +123,17 @@ pub async fn login(
 		.await
 		.unwrap();
 
-	Ok(HttpResponse::Ok().json(&user))
+	let mut response = serde_json::to_value(&user).unwrap().as_object().unwrap().clone();
+	response.remove("password").unwrap();
+
+	Ok(HttpResponse::Ok().json(&response))
 }
 
 #[web::get("/info")]
 pub async fn info(
 	session_info: features::session::SessionInfo,
 	state: web::types::State<Arc<Mutex<AppState>>>,
-) -> Result<web::HttpResponse, HttpError> {
+) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 
 	if session_info.get_user_id().is_none() {
@@ -148,9 +159,12 @@ pub async fn info(
 		user = serde_json::to_value(&employee.unwrap()).unwrap();
 	}
 
-	Ok(HttpResponse::Ok().json(&user))
+	let mut response = serde_json::to_value(&user).unwrap().as_object().unwrap().clone();
+	response.remove("password").unwrap();
+
+	Ok(HttpResponse::Ok().json(&response))
 }
 
-pub fn user_config(config: &mut web::ServiceConfig) {
+pub fn init(config: &mut web::ServiceConfig) {
 	config.service(web::scope("/user").service(register_employee).service(register_patient).service(login).service(info));
 }

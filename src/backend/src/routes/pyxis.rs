@@ -10,7 +10,7 @@ struct PyxisInput {
 }
 
 #[web::get("/")]
-async fn get_all_pyxis(state: web::types::State<Arc<Mutex<AppState>>>) -> Result<web::HttpResponse, HttpError> {
+async fn get_all_pyxis(state: web::types::State<Arc<Mutex<AppState>>>) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 
 	let pyxis = app_state.db.pyxis().find_many(vec![]).exec().await.unwrap();
@@ -21,7 +21,7 @@ async fn get_all_pyxis(state: web::types::State<Arc<Mutex<AppState>>>) -> Result
 async fn get_pyxis(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	id: web::types::Path<String>,
-) -> Result<web::HttpResponse, HttpError> {
+) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 
 	let id_string = id.into_inner();
@@ -47,7 +47,7 @@ async fn get_pyxis(
 async fn create_pyxis(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	pyxis: web::types::Json<PyxisInput>,
-) -> Result<web::HttpResponse, HttpError> {
+) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 	let pyxis = app_state.db.pyxis().create(pyxis.floor, pyxis.block.to_string().to_uppercase(), vec![]).exec().await;
 	if pyxis.is_err() {
@@ -60,7 +60,7 @@ async fn create_pyxis(
 async fn delete_pyxis(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	id: web::types::Path<String>,
-) -> Result<web::HttpResponse, HttpError> {
+) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 	let id_string = id.into_inner();
 	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
@@ -83,6 +83,6 @@ async fn delete_pyxis(
 	Ok(HttpResponse::Ok().json(&pyxis))
 }
 
-pub fn pyxis_config(config: &mut web::ServiceConfig) {
+pub fn init(config: &mut web::ServiceConfig) {
 	config.service(web::scope("/pyxis").service(get_all_pyxis).service(get_pyxis).service(create_pyxis).service(delete_pyxis));
 }

@@ -1,4 +1,7 @@
-use ntex::{http, web};
+use ntex::{
+	http,
+	web::{self, HttpResponse},
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use utoipa::ToSchema;
@@ -50,7 +53,7 @@ impl std::fmt::Display for HttpError {
 impl std::error::Error for HttpError {}
 
 impl web::WebResponseError for HttpError {
-	fn error_response(&self, _: &web::HttpRequest) -> web::HttpResponse {
-		web::HttpResponse::build(self.status).json(&self.message)
+	fn error_response(&self, _: &web::HttpRequest) -> HttpResponse {
+		HttpResponse::build(self.status).json(&self.message)
 	}
 }

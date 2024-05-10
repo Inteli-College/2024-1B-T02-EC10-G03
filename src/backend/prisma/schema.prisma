@@ -179,6 +179,8 @@ model Log {
 enum PyxisReportType {
     DATA_INCONSISTENCY
     NEEDS_REFILL
+    TECHNICAL_ISSUE
+    OTHER
 }
 
 enum ReportStatus {
@@ -206,6 +208,7 @@ model PyxisReport {
 enum PatientReportType {
     NOT_CONSUMED
     QUANTITY_MISMATCH
+    OTHER
 }
 
 model PatientReport {

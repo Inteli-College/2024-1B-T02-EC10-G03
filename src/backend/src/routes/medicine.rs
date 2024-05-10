@@ -10,7 +10,7 @@ struct MedicineInput {
 }
 
 #[web::get("/")]
-pub async fn get_all_medicine(state: web::types::State<Arc<Mutex<AppState>>>) -> Result<web::HttpResponse, HttpError> {
+pub async fn get_all_medicine(state: web::types::State<Arc<Mutex<AppState>>>) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 	let medicine = app_state.db.medicine().find_many(vec![]).with(medicine::medicine_names::fetch(vec![])).exec().await.unwrap();
 	Ok(HttpResponse::Ok().json(&medicine))
@@ -20,7 +20,7 @@ pub async fn get_all_medicine(state: web::types::State<Arc<Mutex<AppState>>>) ->
 pub async fn get_medicine(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	id: web::types::Path<String>,
-) -> Result<web::HttpResponse, HttpError> {
+) -> Result<HttpResponse, HttpError> {
 	let app_state: std::sync::MutexGuard<AppState> = state.lock().unwrap();
 	let medicine = app_state
 		.db
@@ -40,7 +40,7 @@ pub async fn get_medicine(
 pub async fn create_medicine(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	medicine: web::types::Json<MedicineInput>,
-) -> Result<web::HttpResponse, HttpError> {
+) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 
 	let name_creations =
@@ -72,7 +72,7 @@ pub async fn create_medicine(
 pub async fn delete_medicine(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	id: web::types::Path<String>,
-) -> Result<web::HttpResponse, HttpError> {
+) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 
 	let medicine = app_state
@@ -104,7 +104,7 @@ pub async fn delete_medicine(
 	Ok(HttpResponse::Ok().json(&medicine))
 }
 
-pub fn medicine_config(config: &mut web::ServiceConfig) {
+pub fn init(config: &mut web::ServiceConfig) {
 	config.service(
 		web::scope("/medicine").service(get_all_medicine).service(get_medicine).service(create_medicine).service(delete_medicine),
 	);
