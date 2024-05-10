@@ -7,7 +7,7 @@ use cookie::{Cookie, CookieJar};
 use ntex::service::{Middleware, Service, ServiceCtx};
 use ntex::web::{self};
 use redis::AsyncCommands;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use time::Duration;
 
 pub struct SessionMiddleware<S> {
@@ -24,7 +24,11 @@ impl<S> SessionMiddleware<S> {
 	}
 
 	async fn get_user_id(&self, session_id: &str, redis: &mut redis::aio::MultiplexedConnection) -> Option<String> {
-		redis.get(format!("session:{}", session_id)).await.unwrap()
+		let user_id: Option<String> = redis.get(format!("session:{}", session_id)).await.unwrap();
+		match user_id {
+			Some(user_id) => Some(user_id.replace("\"", "")),
+			None => None,
+		}
 	}
 }
 
@@ -57,8 +61,11 @@ where
 	ntex::forward_poll_ready!(service);
 
 	async fn call(&self, req: web::WebRequest<Err>, ctx: ServiceCtx<'_, Self>) -> Result<Self::Response, Self::Error> {
-		let app_state = req.app_state::<Arc<AppState>>().unwrap();
-		let mut redis = app_state.redis.clone();
+		let mut redis;
+		{
+			let app_state_guard = req.app_state::<Arc<Mutex<AppState>>>().unwrap().lock().unwrap();
+			redis = app_state_guard.redis.clone();
+		}
 
 		let cookie_str = req.headers().get("cookie").map(|h| h.to_str().unwrap_or("").to_string());
 
@@ -80,6 +87,7 @@ where
 		if session_id.is_none() {
 			session_id = Some(generate_session_id());
 
+			info!("Session ID: {:?}", session_id);
 			req.extensions_mut().insert(SessionInfo::new(None, session_id.as_ref().unwrap().to_string()));
 		} else {
 			self.set_expiration(session_id.as_ref().unwrap(), &mut redis).await;

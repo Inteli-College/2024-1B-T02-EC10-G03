@@ -11,13 +11,15 @@ datasource db {
 model Patient {
     uuid          String          @id @default(uuid())
     name          String
+    email         String          @unique
+    password      String
     createdAt     DateTime        @default(now())
     updatedAt     DateTime        @updatedAt
     deletedAt     DateTime?
     Transaction   Transaction[]
     PatientReport PatientReport[]
 
-    @@index([name])
+    @@index([name, email])
 }
 
 enum EmployeeRole {
@@ -32,6 +34,8 @@ model Employee {
     uuid                  String                  @id @default(uuid())
     role                  EmployeeRole            @default(COMMONER)
     name                  String
+    email                 String                  @unique
+    password              String
     createdAt             DateTime                @default(now())
     updatedAt             DateTime                @updatedAt
     deletedAt             DateTime?
@@ -39,7 +43,7 @@ model Employee {
     OverriddenTransaction OverriddenTransaction[]
     PyxisReport           PyxisReport[]
 
-    @@index([role, name])
+    @@index([role, name, email])
 }
 
 model MedicineName {
@@ -126,6 +130,7 @@ model Pyxis {
     Inventory   Inventory[]
     PyxisReport PyxisReport[]
 
+    @@unique([floor, block])
     @@index([floor, block])
 }
 

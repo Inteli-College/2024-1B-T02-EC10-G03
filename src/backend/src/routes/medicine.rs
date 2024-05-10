@@ -1,7 +1,7 @@
 use crate::{db::*, AppState};
 use ntex::web::{self, HttpResponse};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct MedicineInput {
@@ -10,14 +10,16 @@ struct MedicineInput {
 }
 
 #[web::get("/")]
-pub async fn get_all_medicine(state: web::types::State<Arc<AppState>>) -> HttpResponse {
-	let medicine = state.db.medicine().find_many(vec![]).with(medicine::medicine_names::fetch(vec![])).exec().await.unwrap();
+pub async fn get_all_medicine(state: web::types::State<Arc<Mutex<AppState>>>) -> HttpResponse {
+	let app_state = state.lock().unwrap();
+	let medicine = app_state.db.medicine().find_many(vec![]).with(medicine::medicine_names::fetch(vec![])).exec().await.unwrap();
 	HttpResponse::Ok().json(&medicine)
 }
 
 #[web::get("/{id}")]
-pub async fn get_medicine(state: web::types::State<Arc<AppState>>, id: web::types::Path<String>) -> HttpResponse {
-	let medicine = state
+pub async fn get_medicine(state: web::types::State<Arc<Mutex<AppState>>>, id: web::types::Path<String>) -> HttpResponse {
+	let app_state: std::sync::MutexGuard<AppState> = state.lock().unwrap();
+	let medicine = app_state
 		.db
 		.medicine()
 		.find_unique(medicine::id::equals(id.into_inner()))
@@ -29,14 +31,19 @@ pub async fn get_medicine(state: web::types::State<Arc<AppState>>, id: web::type
 }
 
 #[web::post("/")]
-pub async fn create_medicine(state: web::types::State<Arc<AppState>>, medicine: web::types::Json<MedicineInput>) -> HttpResponse {
+pub async fn create_medicine(
+	state: web::types::State<Arc<Mutex<AppState>>>,
+	medicine: web::types::Json<MedicineInput>,
+) -> HttpResponse {
+	let app_state = state.lock().unwrap();
+
 	let name_creations =
 		medicine.names.iter().map(|name| medicine_name::create_unchecked(name.to_string(), vec![])).collect::<Vec<_>>();
 
-	state.db.medicine_name().create_many(name_creations).exec().await.unwrap();
+	app_state.db.medicine_name().create_many(name_creations).exec().await.unwrap();
 
 	let connect_params = medicine.names.iter().map(|name| medicine_name::name::equals(name.to_string())).collect::<Vec<_>>();
-	let medicine_created = state
+	let medicine_created = app_state
 		.db
 		.medicine()
 		.create(medicine.id.clone(), vec![medicine::medicine_names::connect(connect_params)])
@@ -49,8 +56,10 @@ pub async fn create_medicine(state: web::types::State<Arc<AppState>>, medicine: 
 }
 
 #[web::delete("/{id}")]
-pub async fn delete_medicine(state: web::types::State<Arc<AppState>>, id: web::types::Path<String>) -> HttpResponse {
-	let medicine = state
+pub async fn delete_medicine(state: web::types::State<Arc<Mutex<AppState>>>, id: web::types::Path<String>) -> HttpResponse {
+	let app_state = state.lock().unwrap();
+
+	let medicine = app_state
 		.db
 		.medicine()
 		.delete(medicine::id::equals(id.into_inner()))
@@ -68,7 +77,7 @@ pub async fn delete_medicine(state: web::types::State<Arc<AppState>>, id: web::t
 		.collect::<Vec<_>>();
 
 	for name in delete_params {
-		state.db.medicine_name().delete(name).exec().await.unwrap();
+		app_state.db.medicine_name().delete(name).exec().await.unwrap();
 	}
 
 	HttpResponse::Ok().json(&medicine)

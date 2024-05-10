@@ -20,7 +20,7 @@ use ntex_cors::Cors;
 use redis;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 pub struct AppState {
 	db: PrismaClient,
@@ -78,7 +78,7 @@ async fn main() -> std::io::Result<()> {
 
 	let redis = redis::Client::open(dotenv!("REDIS_URL")).unwrap().get_multiplexed_async_connection().await.unwrap();
 
-	let state = Arc::new(AppState::new(database, redis));
+	let state = Arc::new(Mutex::new(AppState::new(database, redis)));
 
 	info!("Server is running on http://0.0.0.0:3000");
 	web::server(move || {
@@ -99,6 +99,7 @@ async fn main() -> std::io::Result<()> {
 			.configure(routes::pyxis::pyxis_config)
 			.configure(routes::medicine::medicine_config)
 			.configure(routes::inventory::inventory_config)
+			.configure(routes::user::user_config)
 			.service(index)
 	})
 	.bind("0.0.0.0:3000")?

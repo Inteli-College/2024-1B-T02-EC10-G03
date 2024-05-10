@@ -1,7 +1,7 @@
 use crate::{db::*, AppState};
 use ntex::web::{self, HttpResponse};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct PyxisInput {
@@ -10,18 +10,22 @@ struct PyxisInput {
 }
 
 #[web::get("/")]
-async fn get_all_pyxis(state: web::types::State<Arc<AppState>>) -> HttpResponse {
-	let pyxis = state.db.pyxis().find_many(vec![]).exec().await.unwrap();
+async fn get_all_pyxis(state: web::types::State<Arc<Mutex<AppState>>>) -> HttpResponse {
+	let app_state = state.lock().unwrap();
+
+	let pyxis = app_state.db.pyxis().find_many(vec![]).exec().await.unwrap();
 	HttpResponse::Ok().json(&pyxis)
 }
 
 #[web::get("/{id}")]
-async fn get_pyxis(state: web::types::State<Arc<AppState>>, id: web::types::Path<String>) -> HttpResponse {
+async fn get_pyxis(state: web::types::State<Arc<Mutex<AppState>>>, id: web::types::Path<String>) -> HttpResponse {
+	let app_state = state.lock().unwrap();
+
 	let id_string = id.into_inner();
 	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
 	let (floor, block) = id_string.split_at(position);
 
-	let pyxis = state
+	let pyxis = app_state
 		.db
 		.pyxis()
 		.find_first(vec![pyxis::floor::equals(floor.parse().unwrap()), pyxis::block::equals(block.to_string())])
@@ -32,18 +36,20 @@ async fn get_pyxis(state: web::types::State<Arc<AppState>>, id: web::types::Path
 }
 
 #[web::post("/")]
-async fn create_pyxis(state: web::types::State<Arc<AppState>>, pyxis: web::types::Json<PyxisInput>) -> HttpResponse {
-	let pyxis = state.db.pyxis().create(pyxis.floor, pyxis.block.to_string().to_uppercase(), vec![]).exec().await.unwrap();
+async fn create_pyxis(state: web::types::State<Arc<Mutex<AppState>>>, pyxis: web::types::Json<PyxisInput>) -> HttpResponse {
+	let app_state = state.lock().unwrap();
+	let pyxis = app_state.db.pyxis().create(pyxis.floor, pyxis.block.to_string().to_uppercase(), vec![]).exec().await.unwrap();
 	HttpResponse::Created().json(&pyxis)
 }
 
 #[web::delete("/{id}")]
-async fn delete_pyxis(state: web::types::State<Arc<AppState>>, id: web::types::Path<String>) -> HttpResponse {
+async fn delete_pyxis(state: web::types::State<Arc<Mutex<AppState>>>, id: web::types::Path<String>) -> HttpResponse {
+	let app_state = state.lock().unwrap();
 	let id_string = id.into_inner();
 	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
 	let (floor, block) = id_string.split_at(position);
 
-	let pyxis_uuid = state
+	let pyxis_uuid = app_state
 		.db
 		.pyxis()
 		.find_first(vec![pyxis::floor::equals(floor.parse().unwrap()), pyxis::block::equals(block.to_string())])
@@ -53,7 +59,7 @@ async fn delete_pyxis(state: web::types::State<Arc<AppState>>, id: web::types::P
 		.unwrap()
 		.uuid;
 
-	let pyxis = state.db.pyxis().delete(pyxis::uuid::equals(pyxis_uuid)).exec().await.unwrap();
+	let pyxis = app_state.db.pyxis().delete(pyxis::uuid::equals(pyxis_uuid)).exec().await.unwrap();
 	HttpResponse::Ok().json(&pyxis)
 }
 
