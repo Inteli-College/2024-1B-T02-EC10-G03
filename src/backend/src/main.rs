@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
