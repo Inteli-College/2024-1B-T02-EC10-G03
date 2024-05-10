@@ -1,0 +1,44 @@
+{
+	"expo": {
+		"name": "react-native-template",
+		"slug": "react-native-template",
+		"version": "1.0.0",
+		"orientation": "portrait",
+		"icon": "./assets/img/icon.png",
+		"userInterfaceStyle": "light",
+		"splash": {
+			"image": "./assets/img/splash.png",
+			"resizeMode": "contain",
+			"backgroundColor": "#ffffff"
+		},
+		"assetBundlePatterns": ["**/*"],
+		"ios": {
+			"supportsTablet": true,
+			"permissions": ["CAMERA"]
+		},
+		"android": {
+			"adaptiveIcon": {
+				"foregroundImage": "./assets/img/adaptive-icon.png",
+				"backgroundColor": "#ffffff"
+			},
+			"package": "com.vinicioslugli.reactnativetemplate",
+			"permissions": ["CAMERA"]
+		},
+		"web": {
+			"favicon": "./assets/img/favicon.png"
+		},
+		"experiments": {
+			"tsconfigPaths": true
+		},
+		"plugins": [
+			[
+				"expo-camera",
+				{
+					"cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+					"microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+					"recordAudioAndroid": true
+				}
+			]
+		]
+	}
+}

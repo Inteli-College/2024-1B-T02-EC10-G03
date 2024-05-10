@@ -11,25 +11,31 @@ datasource db {
 model Patient {
     uuid          String          @id @default(uuid())
     name          String
+    email         String          @unique
+    password      String
     createdAt     DateTime        @default(now())
     updatedAt     DateTime        @updatedAt
     deletedAt     DateTime?
     Transaction   Transaction[]
     PatientReport PatientReport[]
 
-    @@index([name])
+    @@index([name, email])
 }
 
 enum EmployeeRole {
     NURSE
     PHARMACIST
     IT
+    ADMIN
+    COMMONER
 }
 
 model Employee {
     uuid                  String                  @id @default(uuid())
-    role                  EmployeeRole
+    role                  EmployeeRole            @default(COMMONER)
     name                  String
+    email                 String                  @unique
+    password              String
     createdAt             DateTime                @default(now())
     updatedAt             DateTime                @updatedAt
     deletedAt             DateTime?
@@ -37,12 +43,11 @@ model Employee {
     OverriddenTransaction OverriddenTransaction[]
     PyxisReport           PyxisReport[]
 
-    @@index([role, name])
+    @@index([role, name, email])
 }
 
 model MedicineName {
-    uuid      String     @id @default(uuid())
-    name      String
+    name      String     @id
     createdAt DateTime   @default(now())
     Medicine  Medicine[]
 
@@ -50,17 +55,15 @@ model MedicineName {
 }
 
 model Medicine {
-    uuid             String        @id @default(uuid())
-    externalId       String
-    createdAt        DateTime      @default(now())
-    updatedAt        DateTime      @updatedAt
-    Transaction      Transaction[]
-    Inventory        Inventory[]
-    MedicineName     MedicineName? @relation(fields: [medicineNameUuid], references: [uuid])
-    medicineNameUuid String?
-    PyxisReport      PyxisReport[]
+    id            String         @id
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
+    Transaction   Transaction[]
+    Inventory     Inventory[]
+    MedicineNames MedicineName[]
+    PyxisReport   PyxisReport[]
 
-    @@index([externalId])
+    @@index([id])
 }
 
 enum TransactionType {
@@ -75,15 +78,15 @@ model Transaction {
     employeeUuid   String
     patient        Patient         @relation(fields: [patientUuid], references: [uuid])
     patientUuid    String
-    medicine       Medicine        @relation(fields: [medicineUuid], references: [uuid])
-    medicineUuid   String
+    medicine       Medicine        @relation(fields: [medicineId], references: [id])
+    medicineId     String
     quantity       Int
     validation     Validation      @relation(fields: [validationUuid], references: [uuid])
     validationUuid String
     createdAt      DateTime        @default(now())
     PatientReport  PatientReport[]
 
-    @@index([employeeUuid, patientUuid, medicineUuid])
+    @@index([employeeUuid, patientUuid, medicineId])
 }
 
 model OverriddenTransaction {
@@ -127,20 +130,21 @@ model Pyxis {
     Inventory   Inventory[]
     PyxisReport PyxisReport[]
 
+    @@unique([floor, block])
     @@index([floor, block])
 }
 
 model Inventory {
-    medicine     Medicine @relation(fields: [medicineUuid], references: [uuid])
-    medicineUuid String
-    pyxis        Pyxis    @relation(fields: [pyxisUuid], references: [uuid])
-    pyxisUuid    String
-    quantity     Int
-    createdAt    DateTime @default(now())
-    updatedAt    DateTime @updatedAt
+    medicine   Medicine @relation(fields: [medicineId], references: [id])
+    medicineId String
+    pyxis      Pyxis    @relation(fields: [pyxisUuid], references: [uuid])
+    pyxisUuid  String
+    quantity   Int
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
 
-    @@id([pyxisUuid, medicineUuid])
-    @@index([pyxisUuid, medicineUuid])
+    @@id([pyxisUuid, medicineId])
+    @@index([pyxisUuid, medicineId])
 }
 
 enum LogLevel {
@@ -175,6 +179,8 @@ model Log {
 enum PyxisReportType {
     DATA_INCONSISTENCY
     NEEDS_REFILL
+    TECHNICAL_ISSUE
+    OTHER
 }
 
 enum ReportStatus {
@@ -190,8 +196,8 @@ model PyxisReport {
     pyxisUuid    String
     employee     Employee        @relation(fields: [employeeUuid], references: [uuid])
     employeeUuid String
-    medicine     Medicine        @relation(fields: [medicineUuid], references: [uuid])
-    medicineUuid String
+    medicine     Medicine        @relation(fields: [medicineId], references: [id])
+    medicineId   String
     type         PyxisReportType
     observation  String
     urgency      Boolean
@@ -202,6 +208,7 @@ model PyxisReport {
 enum PatientReportType {
     NOT_CONSUMED
     QUANTITY_MISMATCH
+    OTHER
 }
 
 model PatientReport {

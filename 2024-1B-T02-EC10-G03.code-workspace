@@ -13,8 +13,8 @@
 			"name": "Backend"
 		},
 		{
-			"path": "src/dashboard",
-			"name": "Dashboard"
+			"path": "src/frontend",
+			"name": "Frontend"
 		},
 		{
 			"path": "src/metabase",
@@ -39,7 +39,7 @@
 			"starlight",
 			"backend",
 			"readme",
-			"dashboard",
+			"frontend",
 			"metabase",
 			"pyxis",
 			"load_test"
