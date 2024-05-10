@@ -44,12 +44,7 @@ pub async fn add_to_inventory(
 		.inventory()
 		.upsert(
 			inventory::pyxis_uuid_medicine_id(pyxis_uuid.clone(), add.medicine_id.to_string()),
-			inventory::create(
-				medicine::id::equals(add.medicine_id.clone()),
-				pyxis::uuid::equals(pyxis_uuid),
-				add.quantity,
-				vec![],
-			),
+			inventory::create(medicine::id::equals(add.medicine_id.clone()), pyxis::uuid::equals(pyxis_uuid), add.quantity, vec![]),
 			vec![
 				inventory::quantity::increment(add.quantity),
 				inventory::updated_at::set(Utc::now().with_timezone(&FixedOffset::east_opt(3 * 3600).unwrap())),
@@ -93,10 +88,7 @@ pub async fn remove_from_inventory(
 	let inventory = app_state
 		.db
 		.inventory()
-		.find_first(vec![
-			inventory::pyxis_uuid::equals(pyxis_uuid.clone()),
-			inventory::medicine_id::equals(remove.medicine_id.to_string()),
-		])
+		.find_first(vec![inventory::pyxis_uuid::equals(pyxis_uuid.clone()), inventory::medicine_id::equals(remove.medicine_id.to_string())])
 		.exec()
 		.await
 		.unwrap();
@@ -151,13 +143,13 @@ pub async fn delete_from_inventory(
 		None => return Err(HttpError::not_found("Pyxis not found")),
 	};
 
-	let inventory = app_state
-		.db
-		.inventory()
-		.delete(inventory::pyxis_uuid_medicine_id(pyxis_uuid.clone(), delete.medicine_id.to_string()))
-		.exec()
-		.await
-		.unwrap();
+	let inventory =
+		app_state.db.inventory().delete(inventory::pyxis_uuid_medicine_id(pyxis_uuid.clone(), delete.medicine_id.to_string())).exec().await;
+
+	let inventory = match inventory {
+		Ok(inventory) => inventory,
+		Err(_) => return Err(HttpError::internal_server_error("Error deleting from inventory")),
+	};
 
 	Ok(HttpResponse::Ok().json(&inventory))
 }
@@ -195,10 +187,6 @@ pub async fn get_from_inventory(
 
 pub fn inventory_config(config: &mut web::ServiceConfig) {
 	config.service(
-		web::scope("/inventory")
-			.service(add_to_inventory)
-			.service(get_from_inventory)
-			.service(remove_from_inventory)
-			.service(delete_from_inventory),
+		web::scope("/inventory").service(add_to_inventory).service(get_from_inventory).service(remove_from_inventory).service(delete_from_inventory),
 	);
 }
