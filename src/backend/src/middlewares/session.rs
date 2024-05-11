@@ -86,7 +86,6 @@ where
 		if session_id.is_none() {
 			session_id = Some(generate_session_id());
 
-			info!("Session ID: {:?}", session_id);
 			req.extensions_mut().insert(SessionInfo::new(None, session_id.as_ref().unwrap().to_string()));
 		} else {
 			self.set_expiration(session_id.as_ref().unwrap(), &mut redis).await;
