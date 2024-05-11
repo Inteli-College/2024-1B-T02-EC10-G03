@@ -1,4 +1,4 @@
-use crate::{db::*, error::HttpError, AppState};
+use crate::{error::HttpError, utils::parser::split_pyxis_id, AppState};
 use ntex::web::{self, HttpResponse};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
@@ -13,7 +13,11 @@ struct PyxisInput {
 async fn get_all_pyxis(state: web::types::State<Arc<Mutex<AppState>>>) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 
-	let pyxis = app_state.db.pyxis().find_many(vec![]).exec().await.unwrap();
+	let pyxis = match app_state.repositories.pyxis.get_all().await {
+		Ok(pyxis) => pyxis,
+		Err(_) => return Err(HttpError::internal_server_error("Failed to get pyxis")),
+	};
+
 	Ok(HttpResponse::Ok().json(&pyxis))
 }
 
@@ -24,36 +28,32 @@ async fn get_pyxis(
 ) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
 
-	let id_string = id.into_inner();
-	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
-	let (floor, block) = id_string.split_at(position);
+	let (floor, block) = split_pyxis_id(id.to_string());
 
-	let pyxis = app_state
-		.db
-		.pyxis()
-		.find_first(vec![pyxis::floor::equals(floor.parse().unwrap()), pyxis::block::equals(block.to_string())])
-		.exec()
-		.await
-		.unwrap();
+	let pyxis = match app_state.repositories.pyxis.get_by_floor_block(floor, block).await {
+		Ok(pyxis) => pyxis,
+		Err(_) => return Err(HttpError::internal_server_error("Failed to get pyxis")),
+	};
 
-	if pyxis.is_none() {
-		return Err(HttpError::not_found("Pyxis not found"));
+	match pyxis {
+		Some(pyxis) => Ok(HttpResponse::Ok().json(&pyxis)),
+		None => Err(HttpError::not_found("Pyxis not found")),
 	}
-
-	Ok(HttpResponse::Ok().json(&pyxis))
 }
 
 #[web::post("/")]
 async fn create_pyxis(
 	state: web::types::State<Arc<Mutex<AppState>>>,
-	pyxis: web::types::Json<PyxisInput>,
+	pyxis_input: web::types::Json<PyxisInput>,
 ) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
-	let pyxis = app_state.db.pyxis().create(pyxis.floor, pyxis.block.to_string().to_uppercase(), vec![]).exec().await;
-	if pyxis.is_err() {
-		return Err(HttpError::internal_server_error("Error creating pyxis"));
-	}
-	Ok(HttpResponse::Created().json(&pyxis.unwrap()))
+
+	let pyxis = match app_state.repositories.pyxis.create(pyxis_input.floor, pyxis_input.block.clone()).await {
+		Ok(pyxis) => pyxis,
+		Err(_) => return Err(HttpError::internal_server_error("Failed to create pyxis")),
+	};
+
+	Ok(HttpResponse::Created().json(&pyxis))
 }
 
 #[web::delete("/{id}")]
@@ -62,24 +62,19 @@ async fn delete_pyxis(
 	id: web::types::Path<String>,
 ) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
-	let id_string = id.into_inner();
-	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
-	let (floor, block) = id_string.split_at(position);
 
-	let pyxis = app_state
-		.db
-		.pyxis()
-		.find_first(vec![pyxis::floor::equals(floor.parse().unwrap()), pyxis::block::equals(block.to_string())])
-		.exec()
-		.await
-		.unwrap();
-
-	let pyxis_uuid = match pyxis {
-		Some(pyxis) => pyxis.uuid,
-		None => return Err(HttpError::not_found("Pyxis not found")),
+	let (floor, block) = split_pyxis_id(id.to_string());
+	let uuid = match app_state.repositories.pyxis.get_by_floor_block(floor, block).await {
+		Ok(Some(pyxis)) => pyxis.uuid,
+		Ok(None) => return Err(HttpError::not_found("Pyxis not found")),
+		Err(_) => return Err(HttpError::internal_server_error("Failed to get pyxis")),
 	};
 
-	let pyxis = app_state.db.pyxis().delete(pyxis::uuid::equals(pyxis_uuid)).exec().await.unwrap();
+	let pyxis = match app_state.repositories.pyxis.delete(uuid).await {
+		Ok(pyxis) => pyxis,
+		Err(_) => return Err(HttpError::internal_server_error("Failed to delete pyxis")),
+	};
+
 	Ok(HttpResponse::Ok().json(&pyxis))
 }
 

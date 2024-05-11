@@ -7,9 +7,12 @@ mod db;
 mod error;
 mod features;
 mod middlewares;
+mod repositories;
 mod routes;
+mod states;
 mod utils;
 
+use crate::states::app::AppState;
 use db::*;
 use dotenvy_macro::dotenv;
 use ntex::{
@@ -19,17 +22,6 @@ use ntex::{
 use ntex_cors::Cors;
 use redis;
 use std::sync::{Arc, Mutex};
-
-pub struct AppState {
-	db: PrismaClient,
-	redis: redis::aio::MultiplexedConnection,
-}
-
-impl AppState {
-	fn new(db: PrismaClient, redis: redis::aio::MultiplexedConnection) -> Self {
-		Self { db, redis }
-	}
-}
 
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
@@ -48,8 +40,10 @@ async fn main() -> std::io::Result<()> {
 	info!("Database schema is up to date!");
 
 	let redis = redis::Client::open(dotenv!("REDIS_URL")).unwrap().get_multiplexed_async_connection().await.unwrap();
+	let database = Arc::new(database);
+	let repositories = repositories::Repositories::new(database.clone());
 
-	let state = Arc::new(Mutex::new(AppState::new(database, redis)));
+	let state = Arc::new(Mutex::new(AppState::new(database, redis, repositories)));
 
 	info!("Server is running on http://0.0.0.0:3000");
 	web::server(move || {

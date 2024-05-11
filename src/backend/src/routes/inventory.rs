@@ -1,5 +1,4 @@
-use crate::{db::*, error::HttpError, AppState};
-use chrono::{FixedOffset, Utc};
+use crate::{error::HttpError, utils::parser::split_pyxis_id, AppState};
 use ntex::web::{self, HttpResponse};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
@@ -17,109 +16,44 @@ pub async fn add_to_inventory(
 	pyxis_id: web::types::Path<String>,
 ) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
-	let id_string = pyxis_id.into_inner();
-	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
-	let (floor, block) = id_string.split_at(position);
+	let (floor, block) = split_pyxis_id(pyxis_id.to_string());
 
-	let pyxis = app_state
-		.db
-		.pyxis()
-		.find_first(vec![pyxis::floor::equals(floor.parse().unwrap()), pyxis::block::equals(block.to_string())])
-		.exec()
-		.await
-		.unwrap();
-
-	let pyxis_uuid = match pyxis {
-		Some(pyxis) => pyxis.uuid,
-		None => return Err(HttpError::not_found("Pyxis not found")),
+	let pyxis = match app_state.repositories.pyxis.get_by_floor_block(floor, block).await {
+		Ok(Some(pyxis)) => pyxis,
+		Ok(None) => return Err(HttpError::not_found("Pyxis not found")),
+		Err(_) => return Err(HttpError::internal_server_error("Failed to get pyxis")),
 	};
 
-	let inventory = app_state
-		.db
-		.inventory()
-		.upsert(
-			inventory::pyxis_uuid_medicine_id(pyxis_uuid.clone(), add.medicine_id.to_string()),
-			inventory::create(
-				medicine::id::equals(add.medicine_id.clone()),
-				pyxis::uuid::equals(pyxis_uuid),
-				add.quantity,
-				vec![],
-			),
-			vec![
-				inventory::quantity::increment(add.quantity),
-				inventory::updated_at::set(Utc::now().with_timezone(&FixedOffset::east_opt(3 * 3600).unwrap())),
-			],
-		)
-		.exec()
-		.await;
-
-	let inventory = match inventory {
+	let inventory = match app_state.repositories.inventory.add_to_pyxis(pyxis.uuid, add.medicine_id.clone(), add.quantity).await {
 		Ok(inventory) => inventory,
-		Err(_) => return Err(HttpError::internal_server_error("Error adding to inventory")),
+		Err(_) => return Err(HttpError::internal_server_error("Failed to add to inventory")),
 	};
 
 	Ok(HttpResponse::Created().json(&inventory))
 }
 
-#[web::post("remove/{pyxis_id}")]
+#[web::post("/remove/{pyxis_id}")]
 pub async fn remove_from_inventory(
 	state: web::types::State<Arc<Mutex<AppState>>>,
 	remove: web::types::Json<ModifyInventoryInput>,
 	pyxis_id: web::types::Path<String>,
 ) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
-	let id_string = pyxis_id.into_inner();
-	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
-	let (floor, block) = id_string.split_at(position);
+	let (floor, block) = split_pyxis_id(pyxis_id.to_string());
 
-	let pyxis = app_state
-		.db
-		.pyxis()
-		.find_first(vec![pyxis::floor::equals(floor.parse().unwrap()), pyxis::block::equals(block.to_string())])
-		.exec()
-		.await
-		.unwrap();
-
-	let pyxis_uuid = match pyxis {
-		Some(pyxis) => pyxis.uuid,
-		None => return Err(HttpError::not_found("Pyxis not found")),
+	let pyxis = match app_state.repositories.pyxis.get_by_floor_block(floor, block).await {
+		Ok(Some(pyxis)) => pyxis,
+		Ok(None) => return Err(HttpError::not_found("Pyxis not found")),
+		Err(_) => return Err(HttpError::internal_server_error("Failed to get pyxis")),
 	};
 
-	let inventory = app_state
-		.db
-		.inventory()
-		.find_first(vec![
-			inventory::pyxis_uuid::equals(pyxis_uuid.clone()),
-			inventory::medicine_id::equals(remove.medicine_id.to_string()),
-		])
-		.exec()
-		.await
-		.unwrap();
+	let inventory =
+		match app_state.repositories.inventory.remove_from_pyxis(pyxis.uuid, remove.medicine_id.clone(), remove.quantity).await {
+			Ok(inventory) => inventory,
+			Err(_) => return Err(HttpError::internal_server_error("Failed to remove from inventory")),
+		};
 
-	let inventory_quantity = match inventory {
-		Some(inventory) => inventory.quantity,
-		None => return Err(HttpError::not_found("Pyxis inventory not found")),
-	};
-
-	if inventory_quantity < remove.quantity {
-		return Err(HttpError::bad_request("Not enough medicine in inventory to remove"));
-	} else {
-		let inventory = app_state
-			.db
-			.inventory()
-			.update(
-				inventory::pyxis_uuid_medicine_id(pyxis_uuid.clone(), remove.medicine_id.to_string()),
-				vec![
-					inventory::quantity::decrement(remove.quantity),
-					inventory::updated_at::set(Utc::now().with_timezone(&FixedOffset::east_opt(3 * 3600).unwrap())),
-				],
-			)
-			.exec()
-			.await
-			.unwrap();
-
-		Ok(HttpResponse::Created().json(&inventory))
-	}
+	Ok(HttpResponse::Ok().json(&inventory))
 }
 
 #[web::delete("/{pyxis_id}/{medicine_id}")]
@@ -128,66 +62,36 @@ pub async fn delete_from_inventory(
 	params: web::types::Path<(String, String)>,
 ) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
-	let pyxis_id = &params.0;
-	let medicine_id = &params.1;
+	let (pyxis_id, medicine_id) = params.into_inner();
 
-	let position = pyxis_id.chars().position(|c| c.is_alphabetic()).unwrap();
-	let (floor, block) = pyxis_id.split_at(position);
+	let (floor, block) = split_pyxis_id(pyxis_id.to_string());
 
-	let pyxis_uuid = app_state
-		.db
-		.pyxis()
-		.find_first(vec![pyxis::floor::equals(floor.parse().unwrap()), pyxis::block::equals(block.to_string())])
-		.exec()
-		.await
-		.unwrap();
-
-	let pyxis_uuid = match pyxis_uuid {
-		Some(pyxis) => pyxis.uuid,
-		None => return Err(HttpError::not_found("Pyxis not found")),
+	let pyxis = match app_state.repositories.pyxis.get_by_floor_block(floor, block).await {
+		Ok(Some(pyxis)) => pyxis,
+		Ok(None) => return Err(HttpError::not_found("Pyxis not found")),
+		Err(_) => return Err(HttpError::internal_server_error("Failed to get pyxis")),
 	};
 
-	let inventory = app_state
-		.db
-		.inventory()
-		.delete(inventory::pyxis_uuid_medicine_id(pyxis_uuid.clone(), medicine_id.to_string()))
-		.exec()
-		.await;
-
-	let inventory = match inventory {
+	let inventory = match app_state.repositories.inventory.delete_from_inventory(pyxis.uuid, medicine_id).await {
 		Ok(inventory) => inventory,
-		Err(_) => return Err(HttpError::not_found("Medicine not found in Pyxis")),
+		Err(_) => return Err(HttpError::internal_server_error("Failed to delete from inventory")),
 	};
 
 	Ok(HttpResponse::Ok().json(&inventory))
 }
 
-#[web::get("/{id}")]
+#[web::get("/{pyxis_id}")]
 pub async fn get_from_inventory(
 	state: web::types::State<Arc<Mutex<AppState>>>,
-	id: web::types::Path<String>,
+	pyxis_id: web::types::Path<String>,
 ) -> Result<HttpResponse, HttpError> {
 	let app_state = state.lock().unwrap();
-	let id_string = id.into_inner();
-	let position = id_string.chars().position(|c| c.is_alphabetic()).unwrap();
-	let (floor, block) = id_string.split_at(position);
-	let floor: i32 = match floor.parse::<i32>() {
-		Ok(floor) => floor,
-		Err(_) => return Err(HttpError::bad_request("Invalid floor number")),
-	};
+	let (floor, block) = split_pyxis_id(pyxis_id.to_string());
 
-	let pyxis = app_state
-		.db
-		.pyxis()
-		.find_first(vec![pyxis::floor::equals(floor), pyxis::block::equals(block.to_string())])
-		.with(pyxis::inventory::fetch(vec![]))
-		.exec()
-		.await
-		.unwrap();
-
-	let pyxis = match pyxis {
-		Some(pyxis) => pyxis,
-		None => return Err(HttpError::not_found("Pyxis not found")),
+	let pyxis = match app_state.repositories.pyxis.get_medications(floor, block).await {
+		Ok(Some(pyxis)) => pyxis,
+		Ok(None) => return Err(HttpError::not_found("Pyxis not found")),
+		Err(_) => return Err(HttpError::internal_server_error("Failed to get pyxis")),
 	};
 
 	Ok(HttpResponse::Ok().json(&pyxis.inventory))
