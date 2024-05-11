@@ -1,7 +1,6 @@
-use crate::{error::HttpError, utils::parser::split_pyxis_id, AppState};
+use crate::{error::HttpError, states::app::AppStateType, utils::parser::split_pyxis_id};
 use ntex::web::{self, HttpResponse};
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct ModifyInventoryInput {
@@ -11,11 +10,11 @@ struct ModifyInventoryInput {
 
 #[web::post("/add/{pyxis_id}")]
 pub async fn add_to_inventory(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	add: web::types::Json<ModifyInventoryInput>,
 	pyxis_id: web::types::Path<String>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 	let (floor, block) = split_pyxis_id(pyxis_id.to_string());
 
 	let pyxis = match app_state.repositories.pyxis.get_by_floor_block(floor, block).await {
@@ -34,11 +33,11 @@ pub async fn add_to_inventory(
 
 #[web::post("/remove/{pyxis_id}")]
 pub async fn remove_from_inventory(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	remove: web::types::Json<ModifyInventoryInput>,
 	pyxis_id: web::types::Path<String>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 	let (floor, block) = split_pyxis_id(pyxis_id.to_string());
 
 	let pyxis = match app_state.repositories.pyxis.get_by_floor_block(floor, block).await {
@@ -58,10 +57,10 @@ pub async fn remove_from_inventory(
 
 #[web::delete("/{pyxis_id}/{medicine_id}")]
 pub async fn delete_from_inventory(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	params: web::types::Path<(String, String)>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 	let (pyxis_id, medicine_id) = params.into_inner();
 
 	let (floor, block) = split_pyxis_id(pyxis_id.to_string());
@@ -82,10 +81,10 @@ pub async fn delete_from_inventory(
 
 #[web::get("/{pyxis_id}")]
 pub async fn get_from_inventory(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	pyxis_id: web::types::Path<String>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 	let (floor, block) = split_pyxis_id(pyxis_id.to_string());
 
 	let pyxis = match app_state.repositories.pyxis.get_medications(floor, block).await {

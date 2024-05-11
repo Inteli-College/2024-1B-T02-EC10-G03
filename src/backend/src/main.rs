@@ -21,7 +21,8 @@ use ntex::{
 };
 use ntex_cors::Cors;
 use redis;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
@@ -43,7 +44,7 @@ async fn main() -> std::io::Result<()> {
 	let database = Arc::new(database);
 	let repositories = repositories::Repositories::new(database.clone());
 
-	let state = Arc::new(Mutex::new(AppState::new(database, redis, repositories)));
+	let state = Arc::new(RwLock::new(AppState::new(database, redis, repositories)));
 
 	info!("Server is running on http://0.0.0.0:3000");
 	web::server(move || {

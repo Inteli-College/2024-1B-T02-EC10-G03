@@ -1,6 +1,7 @@
 use crate::{db, repositories};
 use db::*;
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 pub struct AppState {
 	pub db: Arc<PrismaClient>,
@@ -17,3 +18,5 @@ impl AppState {
 		Self { db, redis, repositories }
 	}
 }
+
+pub type AppStateType = Arc<RwLock<AppState>>;

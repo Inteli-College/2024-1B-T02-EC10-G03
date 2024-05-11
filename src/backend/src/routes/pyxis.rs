@@ -1,7 +1,6 @@
-use crate::{error::HttpError, utils::parser::split_pyxis_id, AppState};
+use crate::{error::HttpError, states::app::AppStateType, utils::parser::split_pyxis_id};
 use ntex::web::{self, HttpResponse};
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct PyxisInput {
@@ -10,8 +9,8 @@ struct PyxisInput {
 }
 
 #[web::get("/")]
-async fn get_all_pyxis(state: web::types::State<Arc<Mutex<AppState>>>) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+async fn get_all_pyxis(state: web::types::State<AppStateType>) -> Result<HttpResponse, HttpError> {
+	let app_state = state.read().await;
 
 	let pyxis = match app_state.repositories.pyxis.get_all().await {
 		Ok(pyxis) => pyxis,
@@ -22,11 +21,8 @@ async fn get_all_pyxis(state: web::types::State<Arc<Mutex<AppState>>>) -> Result
 }
 
 #[web::get("/{id}")]
-async fn get_pyxis(
-	state: web::types::State<Arc<Mutex<AppState>>>,
-	id: web::types::Path<String>,
-) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+async fn get_pyxis(state: web::types::State<AppStateType>, id: web::types::Path<String>) -> Result<HttpResponse, HttpError> {
+	let app_state = state.read().await;
 
 	let (floor, block) = split_pyxis_id(id.to_string());
 
@@ -43,10 +39,10 @@ async fn get_pyxis(
 
 #[web::post("/")]
 async fn create_pyxis(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	pyxis_input: web::types::Json<PyxisInput>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 
 	let pyxis = match app_state.repositories.pyxis.create(pyxis_input.floor, pyxis_input.block.clone()).await {
 		Ok(pyxis) => pyxis,
@@ -57,11 +53,8 @@ async fn create_pyxis(
 }
 
 #[web::delete("/{id}")]
-async fn delete_pyxis(
-	state: web::types::State<Arc<Mutex<AppState>>>,
-	id: web::types::Path<String>,
-) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+async fn delete_pyxis(state: web::types::State<AppStateType>, id: web::types::Path<String>) -> Result<HttpResponse, HttpError> {
+	let app_state = state.read().await;
 
 	let (floor, block) = split_pyxis_id(id.to_string());
 	let uuid = match app_state.repositories.pyxis.get_by_floor_block(floor, block).await {

@@ -1,7 +1,6 @@
-use crate::{error::HttpError, AppState};
+use crate::{error::HttpError, states::app::AppStateType};
 use ntex::web::{self, HttpResponse};
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct MedicineInput {
@@ -10,8 +9,8 @@ struct MedicineInput {
 }
 
 #[web::get("/")]
-pub async fn get_all_medicine(state: web::types::State<Arc<Mutex<AppState>>>) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+pub async fn get_all_medicine(state: web::types::State<AppStateType>) -> Result<HttpResponse, HttpError> {
+	let app_state = state.read().await;
 
 	let medicines = match app_state.repositories.medicine.get_all().await {
 		Ok(medicine) => medicine,
@@ -23,10 +22,10 @@ pub async fn get_all_medicine(state: web::types::State<Arc<Mutex<AppState>>>) ->
 
 #[web::get("/{id}")]
 pub async fn get_medicine(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	id: web::types::Path<String>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 
 	let medicine = match app_state.repositories.medicine.get(id.into_inner()).await {
 		Ok(medicine) => medicine,
@@ -41,10 +40,10 @@ pub async fn get_medicine(
 
 #[web::post("/")]
 pub async fn create_medicine(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	medicine_input: web::types::Json<MedicineInput>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 
 	let medicine = match app_state.repositories.medicine.create(medicine_input.id.clone(), medicine_input.names.clone()).await {
 		Ok(medicine) => medicine,
@@ -56,10 +55,10 @@ pub async fn create_medicine(
 
 #[web::delete("/{id}")]
 pub async fn delete_medicine(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	id: web::types::Path<String>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 
 	let medicine = match app_state.repositories.medicine.delete(id.into_inner()).await {
 		Ok(medicine) => medicine,

@@ -1,8 +1,7 @@
-use crate::{error::HttpError, features, utils::parser::fetch_employee_role, AppState};
+use crate::{error::HttpError, features, states::app::AppStateType, utils::parser::fetch_employee_role};
 use ntex::web::{self, HttpResponse};
 use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct RegisterPatientInput {
@@ -27,10 +26,10 @@ struct LoginInput {
 
 #[web::post("/register/employee")]
 pub async fn register_employee(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	payload: web::types::Json<RegisterEmployeeInput>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 	let role = match fetch_employee_role(payload.role.clone()) {
 		Some(role) => role,
 		None => return Err(HttpError::bad_request("Invalid role")),
@@ -58,10 +57,10 @@ pub async fn register_employee(
 
 #[web::post("/register/patient")]
 pub async fn register_patient(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	payload: web::types::Json<RegisterPatientInput>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 
 	let patient = match app_state
 		.repositories
@@ -88,11 +87,11 @@ pub async fn register_patient(
 
 #[web::post("/login")]
 pub async fn login(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	session_info: features::session::SessionInfo,
 	payload: web::types::Json<LoginInput>,
 ) -> Result<HttpResponse, HttpError> {
-	let mut app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 
 	let user_json = if let Some(employee) =
 		match app_state.repositories.employee.find_by_credentials(payload.email.clone(), payload.password.clone()).await {
@@ -118,6 +117,7 @@ pub async fn login(
 
 	let _: () = app_state
 		.redis
+		.clone()
 		.set(format!("session:{}", session_info.get_session_id().to_string()), user_json["uuid"].to_string())
 		.await
 		.unwrap();
@@ -135,9 +135,9 @@ pub async fn login(
 #[web::get("/info")]
 pub async fn info(
 	session_info: features::session::SessionInfo,
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 
 	let user_uuid = session_info.get_user_id().ok_or(HttpError::unauthorized("Invalid credentials"))?.clone();
 
