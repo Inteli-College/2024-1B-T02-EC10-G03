@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use self::medicine::medicine_names;
+
 use super::DatabaseClient;
 use crate::db::*;
 use prisma_client_rust::QueryError;
@@ -29,8 +31,7 @@ impl MedicineRepository {
 	}
 
 	pub async fn create(&self, id: String, names: Vec<String>) -> Result<Medicine, QueryError> {
-		let name_creations =
-			names.iter().map(|name| medicine_name::create_unchecked(name.to_string(), vec![])).collect::<Vec<_>>();
+		let name_creations = names.iter().map(|name| medicine_name::create(name.to_string(), vec![])).collect::<Vec<_>>();
 
 		self.db_client.get_db().medicine_name().create_many(name_creations).exec().await?;
 
@@ -46,6 +47,13 @@ impl MedicineRepository {
 	}
 
 	pub async fn delete(&self, id: String) -> Result<Medicine, QueryError> {
+		self.db_client
+			.get_db()
+			.medicine_name()
+			.delete_many(vec![medicine_name::medicine::every(vec![medicine::id::equals(id.clone())])])
+			.exec()
+			.await?;
+
 		self.db_client.get_db().medicine().delete(medicine::id::equals(id.clone())).exec().await
 	}
 }
