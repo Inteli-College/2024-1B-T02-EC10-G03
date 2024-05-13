@@ -33,27 +33,35 @@ impl MedicineRepository {
 	pub async fn create(&self, id: String, names: Vec<String>) -> Result<Medicine, QueryError> {
 		let name_creations = names.iter().map(|name| medicine_name::create(name.to_string(), vec![])).collect::<Vec<_>>();
 
-		self.db_client.get_db().medicine_name().create_many(name_creations).exec().await?;
-
-		let connect_params = names.iter().map(|name| medicine_name::name::equals(name.to_string())).collect::<Vec<_>>();
-
 		self.db_client
 			.get_db()
-			.medicine()
-			.create(id.clone(), vec![medicine::medicine_names::connect(connect_params)])
-			.with(medicine::medicine_names::fetch(vec![]))
-			.exec()
+			._transaction()
+			.run(|tx| async move {
+				tx.medicine_name().create_many(name_creations).exec().await?;
+
+				let connect_params: Vec<medicine_name::UniqueWhereParam> =
+					names.iter().map(|name| medicine_name::name::equals(name.to_string())).collect::<Vec<_>>();
+
+				tx.medicine()
+					.create(id.clone(), vec![medicine::medicine_names::connect(connect_params)])
+					.with(medicine::medicine_names::fetch(vec![]))
+					.exec()
+					.await
+			})
 			.await
 	}
 
 	pub async fn delete(&self, id: String) -> Result<Medicine, QueryError> {
 		self.db_client
 			.get_db()
-			.medicine_name()
-			.delete_many(vec![medicine_name::medicine::every(vec![medicine::id::equals(id.clone())])])
-			.exec()
-			.await?;
-
-		self.db_client.get_db().medicine().delete(medicine::id::equals(id.clone())).exec().await
+			._transaction()
+			.run(|tx| async move {
+				tx.medicine_name()
+					.delete_many(vec![medicine_name::medicine::every(vec![medicine::id::equals(id.clone())])])
+					.exec()
+					.await?;
+				tx.medicine().delete(medicine::id::equals(id.clone())).exec().await
+			})
+			.await
 	}
 }

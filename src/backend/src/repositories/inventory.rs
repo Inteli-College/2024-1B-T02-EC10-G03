@@ -15,13 +15,30 @@ impl InventoryRepository {
 		Self { db_client: DatabaseClient::new(db_client) }
 	}
 
+	pub async fn create_inventory(&self, pyxis_uuid: String, medicine_id: String) -> Result<Inventory, QueryError> {
+		self.db_client
+			.get_db()
+			.inventory()
+			.create(
+				medicine::id::equals(medicine_id),
+				pyxis::uuid::equals(pyxis_uuid),
+				vec![inventory::updated_at::set(db_now_datetime())],
+			)
+			.exec()
+			.await
+	}
+
 	pub async fn add_to_pyxis(&self, pyxis_uuid: String, medicine_id: String, quantity: i32) -> Result<Inventory, QueryError> {
 		self.db_client
 			.get_db()
 			.inventory()
 			.upsert(
 				inventory::pyxis_uuid_medicine_id(pyxis_uuid.clone(), medicine_id.clone()),
-				inventory::create(medicine::id::equals(medicine_id), pyxis::uuid::equals(pyxis_uuid), quantity, vec![]),
+				inventory::create(
+					medicine::id::equals(medicine_id),
+					pyxis::uuid::equals(pyxis_uuid),
+					vec![inventory::quantity::set(quantity), inventory::updated_at::set(db_now_datetime())],
+				),
 				vec![inventory::quantity::increment(quantity), inventory::updated_at::set(db_now_datetime())],
 			)
 			.exec()

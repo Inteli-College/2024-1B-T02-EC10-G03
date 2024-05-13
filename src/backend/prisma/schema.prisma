@@ -139,7 +139,7 @@ model Inventory {
     medicineId String
     pyxis      Pyxis    @relation(fields: [pyxisUuid], references: [uuid])
     pyxisUuid  String
-    quantity   Int
+    quantity   Int      @default(0)
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
 
