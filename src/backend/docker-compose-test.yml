@@ -1,4 +1,9 @@
 services:
+    postgres:
+        extends:
+            file: docker-compose-db.yml
+            service: postgres
+
     redis:
         extends:
             file: docker-compose-db.yml
@@ -13,5 +18,6 @@ services:
         volumes:
             - .:/usr/src/app
             - .cache/cargo-cache:/usr/local/cargo/target
-        env_file:
-            - .env
+        environment:
+            DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres?schema=public]
+            REDIS_URL: redis://redis:6379
