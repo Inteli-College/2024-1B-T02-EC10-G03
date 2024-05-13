@@ -1,13 +1,12 @@
 use crate::{
 	features::session::{SessionCookie, SessionInfo},
+	states::app::AppStateType,
 	utils::session::generate_session_id,
-	AppState,
 };
 use cookie::{Cookie, CookieJar};
 use ntex::service::{Middleware, Service, ServiceCtx};
 use ntex::web::{self};
 use redis::AsyncCommands;
-use std::sync::{Arc, Mutex};
 use time::Duration;
 
 pub struct SessionMiddleware<S> {
@@ -63,7 +62,7 @@ where
 	async fn call(&self, req: web::WebRequest<Err>, ctx: ServiceCtx<'_, Self>) -> Result<Self::Response, Self::Error> {
 		let mut redis;
 		{
-			let app_state_guard = req.app_state::<Arc<Mutex<AppState>>>().unwrap().lock().unwrap();
+			let app_state_guard = req.app_state::<AppStateType>().unwrap().read().await;
 			redis = app_state_guard.redis.clone();
 		}
 
@@ -87,7 +86,6 @@ where
 		if session_id.is_none() {
 			session_id = Some(generate_session_id());
 
-			info!("Session ID: {:?}", session_id);
 			req.extensions_mut().insert(SessionInfo::new(None, session_id.as_ref().unwrap().to_string()));
 		} else {
 			self.set_expiration(session_id.as_ref().unwrap(), &mut redis).await;

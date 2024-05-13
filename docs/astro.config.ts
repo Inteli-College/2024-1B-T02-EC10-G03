@@ -64,6 +64,28 @@ export default defineConfig({
 					label: 'Sprint 2',
 					collapsed: true,
 					autogenerate: { directory: 'sprint-2' },
+					items: [
+						{
+							label: 'Negócios',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-2/business' },
+						},
+						{
+							label: 'Experiência do Usuário',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-2/ux' },
+						},
+						{
+							label: 'Sistema',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-2/system' },
+						},
+						{
+							label: 'Review',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-2/review' },
+						},
+					],
 				},
 				{
 					label: 'Sprint 3',

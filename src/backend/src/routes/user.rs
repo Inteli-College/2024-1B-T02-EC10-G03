@@ -1,9 +1,7 @@
-use crate::{db::*, error::HttpError, features, AppState};
+use crate::{error::HttpError, features, states::app::AppStateType, utils::parser::fetch_employee_role};
 use ntex::web::{self, HttpResponse};
 use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
-use std::sync::{Arc, Mutex};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct RegisterPatientInput {
@@ -26,105 +24,110 @@ struct LoginInput {
 	password: String,
 }
 
-fn fetch_role(role: String) -> Result<EmployeeRole, &'static str> {
-	match role.as_str() {
-		"NURSE" => Ok(EmployeeRole::Nurse),
-		"PHARMACIST" => Ok(EmployeeRole::Pharmacist),
-		"IT" => Ok(EmployeeRole::It),
-		"ADMIN" => Ok(EmployeeRole::Admin),
-		"COMMONER" => Ok(EmployeeRole::Commoner),
-		_ => Err("Invalid role"),
-	}
-}
-
 #[web::post("/register/employee")]
 pub async fn register_employee(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	payload: web::types::Json<RegisterEmployeeInput>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
-	let role = fetch_role(payload.role.clone()).unwrap();
-	let employee = app_state
-		.db
-		.employee()
-		.create(payload.name.clone(), payload.email.clone(), payload.password.clone(), vec![employee::role::set(role)])
-		.exec()
-		.await;
+	let app_state = state.read().await;
+	let role = match fetch_employee_role(payload.role.clone()) {
+		Some(role) => role,
+		None => return Err(HttpError::bad_request("Invalid role")),
+	};
 
-	if employee.is_err() {
-		return Err(HttpError::internal_server_error("Error creating employee"));
-	}
+	let employee = match app_state
+		.repositories
+		.employee
+		.create(payload.name.clone(), payload.email.clone(), payload.password.clone(), role)
+		.await
+	{
+		Ok(employee) => employee,
+		Err(_) => return Err(HttpError::internal_server_error("Failed to create employee")),
+	};
 
-	let mut response = serde_json::to_value(&employee.unwrap()).unwrap().as_object().unwrap().clone();
+	let mut response = match serde_json::to_value(&employee) {
+		Ok(json) => json.as_object().unwrap().clone(),
+		Err(_) => return Err(HttpError::internal_server_error("Failed to serialize employee data")),
+	};
 
-	response.remove("password").unwrap();
+	response.remove("password");
 
 	Ok(HttpResponse::Created().json(&response))
 }
 
 #[web::post("/register/patient")]
 pub async fn register_patient(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	payload: web::types::Json<RegisterPatientInput>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
-	let patient =
-		app_state.db.patient().create(payload.name.clone(), payload.email.clone(), payload.password.clone(), vec![]).exec().await;
+	let app_state = state.read().await;
 
-	if patient.is_err() {
-		return Err(HttpError::internal_server_error("Error creating patient"));
-	}
+	let patient = match app_state
+		.repositories
+		.patient
+		.create(payload.name.clone(), payload.email.clone(), payload.password.clone())
+		.await
+	{
+		Ok(patient) => patient,
+		Err(_) => return Err(HttpError::internal_server_error("Failed to create patient")),
+	};
 
-	let mut response = serde_json::to_value(&patient.unwrap()).unwrap().as_object().unwrap().clone();
+	let mut response = match serde_json::to_value(&patient) {
+		Ok(json) => match json.as_object() {
+			Some(patient) => patient.clone(),
+			None => return Err(HttpError::internal_server_error("Failed to serialize patient data")),
+		},
+		Err(_) => return Err(HttpError::internal_server_error("Failed to serialize patient data")),
+	};
 
-	response.remove("password").unwrap();
+	response.remove("password");
 
 	Ok(HttpResponse::Created().json(&response))
 }
 
 #[web::post("/login")]
 pub async fn login(
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 	session_info: features::session::SessionInfo,
 	payload: web::types::Json<LoginInput>,
 ) -> Result<HttpResponse, HttpError> {
-	let mut app_state = state.lock().unwrap();
-	let mut user = json!({});
+	let app_state = state.read().await;
 
-	let employee = app_state
-		.db
-		.employee()
-		.find_first(vec![employee::email::equals(payload.email.clone()), employee::password::equals(payload.password.clone())])
-		.exec()
-		.await
-		.unwrap();
-
-	if employee.is_none() {
-		let patient = app_state
-			.db
-			.patient()
-			.find_first(vec![patient::email::equals(payload.email.clone()), patient::password::equals(payload.password.clone())])
-			.exec()
-			.await
-			.unwrap();
-
-		if patient.is_none() {
-			return Err(HttpError::unauthorized("Invalid credentials"));
+	let user_json = if let Some(employee) =
+		match app_state.repositories.employee.find_by_credentials(payload.email.clone(), payload.password.clone()).await {
+			Ok(employee) => employee,
+			Err(_) => return Err(HttpError::internal_server_error("Failed to get employee")),
+		} {
+		match serde_json::to_value(&employee) {
+			Ok(json) => json,
+			Err(_) => return Err(HttpError::internal_server_error("Failed to serialize employee data")),
 		}
-
-		user = serde_json::to_value(&patient.unwrap()).unwrap();
+	} else if let Some(patient) =
+		match app_state.repositories.patient.find_by_credentials(payload.email.clone(), payload.password.clone()).await {
+			Ok(patient) => patient,
+			Err(_) => return Err(HttpError::internal_server_error("Failed to get patient")),
+		} {
+		match serde_json::to_value(&patient) {
+			Ok(json) => json,
+			Err(_) => return Err(HttpError::internal_server_error("Failed to serialize patient data")),
+		}
 	} else {
-		user = serde_json::to_value(&employee.unwrap()).unwrap();
-	}
+		return Err(HttpError::unauthorized("Invalid credentials"));
+	};
 
 	let _: () = app_state
 		.redis
-		.set(format!("session:{}", session_info.get_session_id().to_string()), user["uuid"].to_string())
+		.clone()
+		.set(format!("session:{}", session_info.get_session_id().to_string()), user_json["uuid"].to_string())
 		.await
 		.unwrap();
 
-	let mut response = serde_json::to_value(&user).unwrap().as_object().unwrap().clone();
-	response.remove("password").unwrap();
+	let mut response = match user_json.as_object() {
+		Some(user) => user.clone(),
+		None => return Err(HttpError::internal_server_error("Failed to serialize user data")),
+	};
+
+	response.remove("password");
 
 	Ok(HttpResponse::Ok().json(&response))
 }
@@ -132,35 +135,37 @@ pub async fn login(
 #[web::get("/info")]
 pub async fn info(
 	session_info: features::session::SessionInfo,
-	state: web::types::State<Arc<Mutex<AppState>>>,
+	state: web::types::State<AppStateType>,
 ) -> Result<HttpResponse, HttpError> {
-	let app_state = state.lock().unwrap();
+	let app_state = state.read().await;
 
-	if session_info.get_user_id().is_none() {
-		return Err(HttpError::unauthorized("Invalid credentials"));
-	}
+	let user_uuid = session_info.get_user_id().ok_or(HttpError::unauthorized("Invalid credentials"))?.clone();
 
-	let mut user = json!({});
-
-	let user_uuid: String = session_info.get_user_id().unwrap().clone();
-	info!("User UUID: {:?}", user_uuid);
-
-	let employee = app_state.db.employee().find_unique(employee::uuid::equals(user_uuid.clone())).exec().await.unwrap();
-
-	if employee.is_none() {
-		let patient = app_state.db.patient().find_unique(patient::uuid::equals(user_uuid.clone())).exec().await.unwrap();
-
-		if patient.is_none() {
-			return Err(HttpError::unauthorized("Invalid credentials"));
+	let user = if let Some(employee) = match app_state.repositories.employee.find_by_uuid(user_uuid.clone()).await {
+		Ok(employee) => employee,
+		Err(_) => return Err(HttpError::internal_server_error("Failed to get employee")),
+	} {
+		match serde_json::to_value(&employee) {
+			Ok(json) => json,
+			Err(_) => return Err(HttpError::internal_server_error("Failed to serialize employee data")),
 		}
-
-		user = serde_json::to_value(&patient.unwrap()).unwrap();
+	} else if let Some(patient) = match app_state.repositories.patient.find_by_uuid(user_uuid.clone()).await {
+		Ok(patient) => patient,
+		Err(_) => return Err(HttpError::internal_server_error("Failed to get patient")),
+	} {
+		match serde_json::to_value(&patient) {
+			Ok(json) => json,
+			Err(_) => return Err(HttpError::internal_server_error("Failed to serialize patient data")),
+		}
 	} else {
-		user = serde_json::to_value(&employee.unwrap()).unwrap();
-	}
+		return Err(HttpError::unauthorized("Invalid credentials"));
+	};
 
-	let mut response = serde_json::to_value(&user).unwrap().as_object().unwrap().clone();
-	response.remove("password").unwrap();
+	let mut response = match user.as_object() {
+		Some(user) => user.clone(),
+		None => return Err(HttpError::internal_server_error("Failed to serialize user data")),
+	};
+	response.remove("password");
 
 	Ok(HttpResponse::Ok().json(&response))
 }
