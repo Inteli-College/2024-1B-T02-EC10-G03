@@ -100,9 +100,14 @@ import { Steps } from '@astrojs/starlight/components';
     npm run bundle
     ```
 
-4. Rode os testes de carga com o k6:
+4. Defina o Hostname:
     ```bash
-    k6 run api_load_test.ts
+    export HOSTNAME="your_hostname_here"
+    ```
+
+5. Rode os testes de carga com o k6:
+    ```bash
+    k6 run dist/index.test.js
     ```
 
 </Steps>
@@ -111,7 +116,21 @@ import { Steps } from '@astrojs/starlight/components';
 
 Rodando o teste para a API desenvolvida, obtivemos as seguintes métricas:
 
-🚧 WIP 🚧
+![K6](../../../../assets/k6-summary.png)
+
+![K6](../../../../assets/k6-tasks.png)
+
+![K6](../../../../assets/k6-metrics.png)
+
+
+Observando as métricas, temos que:
+
+- `checks` - Número de verificações executadas durante o teste. Houve 100% de sucesso nas verificações.
+- `http_req_duration` - Duração média das requisições HTTP. O percentil 95 foi de 5 microsegundos e a média foi de 3.92 microsegundos.
+- `http_req_failed` - Número de requisições HTTP que falharam durante o teste. Nenhuma requisição falhou.
+- `http_reqs` - Número total de requisições HTTP feitas durante o teste. Foram feitas 6542 requisições.
+- `iterations` - Número total de iterações executadas durante o teste. Foram executadas 963 iterações.
+- `vus` - Número de usuários virtuais (VUs) ativos durante o teste. Foram utilizados entre 5 e 10 VUs.
 
 ## Conclusão
 
