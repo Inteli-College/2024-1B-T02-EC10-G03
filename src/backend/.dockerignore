@@ -6,3 +6,4 @@ target
 renovate.json
 .cache
 src/db.rs
+*.yml
