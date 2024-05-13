@@ -9,6 +9,13 @@ echo "    GGGGGGGGGGGG        000000000           333333333333333   \n  GGG:::::
 
 sleep 1
 
+echo "\n---------------------------------------"
+echo "| Deleting existing minikube instance |"
+echo "---------------------------------------\n"
+minikube delete
+
+sleep 1
+
 echo "\n---------------------"
 echo "| Starting minikube |"
 echo "---------------------\n"
@@ -34,6 +41,8 @@ echo "| Building backend docker image |"
 echo "---------------------------------\n"
 docker build -t backend -f ../backend/Dockerfile.kubernetes ../backend
 
+sleep 3
+
 echo "\n--------------------------------"
 echo "| Starting database deployment |"
 echo "--------------------------------\n"
@@ -53,12 +62,22 @@ minikube kubectl -- apply -f app-service.yaml
 minikube kubectl -- apply -f app-config.yaml
 minikube kubectl -- apply -f app-pvc.yaml
 
+sleep 5
+
+echo "\n---------------------------------------------"
+echo "| Port forwarding to access the application |"
+echo "---------------------------------------------\n"
+minikube service app-service --url > tmp_url.txt &
+
+while [ ! -s tmp_url.txt ]; do
+    sleep 1
+done
+
+echo "Service URL:"
+cat tmp_url.txt
+rm tmp_url.txt 
+
 echo "\n---------------------"
 echo "| Calling dashboard |"
 echo "---------------------\n"
 minikube dashboard
-
-# echo "\n---------------------------------------------"
-# echo "| Port forwarding to access the application |"
-# echo "---------------------------------------------\n"
-# minikube service app-service --url &

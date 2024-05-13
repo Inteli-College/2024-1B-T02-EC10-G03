@@ -1,4 +1,3 @@
-# Rust as the base image
 FROM rust:1.78-slim-buster as build
 
 WORKDIR /backend
@@ -12,15 +11,11 @@ RUN apt-get update && apt-get install -y \
 COPY . .
 COPY .cargo .
 
-# this build step will cache your dependencies
 RUN cargo prisma generate
 RUN cargo build --release
 
-# our final base
 FROM rust:1.78-slim-buster
 
-# copy the build artifact from the build stage
 COPY --from=build /backend/target/release/backend .
 
-# set the startup command to run your binary
 CMD ["./backend"]
