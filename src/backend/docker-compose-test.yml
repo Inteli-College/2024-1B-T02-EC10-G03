@@ -12,12 +12,18 @@ services:
     app:
         build:
             context: .
-            dockerfile: Dockerfile.base
+            dockerfile: Dockerfile.dev
         tty: true
         command: sh -c "cargo prisma generate && cargo test"
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
         volumes:
             - .:/usr/src/app
             - .cache/cargo-cache:/usr/local/cargo/target
         environment:
-            DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres?schema=public]
+            DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres?schema=public
             REDIS_URL: redis://redis:6379
+  

@@ -43,7 +43,7 @@ sleep 1
 echo "\n---------------------------------"
 echo "| Building backend docker image |"
 echo "---------------------------------\n"
-docker build -t backend -f ../backend/Dockerfile.kubernetes ../backend
+docker build -t backend -f ../backend/Dockerfile.prod ../backend
 
 sleep 3
 
@@ -79,7 +79,7 @@ done
 
 echo "Service URL:"
 cat tmp_url.txt
-rm tmp_url.txt 
+rm tmp_url.txt
 
 echo "\n---------------------"
 echo "| Calling dashboard |"
