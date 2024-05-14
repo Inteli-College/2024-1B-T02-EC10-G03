@@ -11,11 +11,9 @@ class TopicProducer:
 
     def delivery_callback(self, err: KafkaError, msg: Message):
         if err:
-            print(f"Message delivery failed: {err}")
+            print(f"\t\tMessage delivery failed: {err}")
         else:
-            print(
-                f'Message "{msg.value().decode()}" delivered to topic "{msg.topic()}" [{msg.partition()}]'
-            )
+            print(f'\t\tMessage delivered to topic "{msg.topic()}"')
 
     def produce(self, topic: str, message: str | dict):
         if isinstance(message, dict):

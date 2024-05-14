@@ -31,7 +31,9 @@ class App:
 
         transaction_request.set_validation_video_path("s3/path/to/video")
 
-        print(f"transaction_request.is_valid(): {transaction_request.is_valid()}")
+        print("\t\tGenerated mock transaction:")
+        print(f"\t\t{transaction_request}")
+        print(f"\t\ttransaction_request.is_valid(): {transaction_request.is_valid()}")
 
         if transaction_request.is_valid():
             return transaction_request
@@ -39,13 +41,21 @@ class App:
             return None
 
     def run(self):
+        print("Creating producer...")
         producer = TopicProducer()
+        print("Producer created!")
 
+        print("Starting to produce messages...")
+
+        print("\tGenerating mock transaction...")
         transaction_request = self.generate_mock_transaction()
+        print("\tMock transaction generated!")
 
         if transaction_request:
+            print("\tProducing message...")
             producer.produce(self.topic, transaction_request.to_json())
             producer.flush()
+            print("\tMessage produced!")
 
 
 if __name__ == "__main__":
