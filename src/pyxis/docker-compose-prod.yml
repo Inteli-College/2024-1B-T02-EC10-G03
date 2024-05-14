@@ -1,0 +1,10 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile.base
+        volumes:
+            - .:/app
+        env_file:
+            - .env
+        command: python src/main.py

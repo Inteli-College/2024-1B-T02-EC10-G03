@@ -1,11 +1,9 @@
 ---
 title: Testes de Carga
+sidebar:
+    order: 3
 description: Testes de Carga utilizando o Framework TypeScript k6
 ---
-
-# Testes de Carga utilizando o Framework TypeScript k6
-
-## Introdução
 
 Os testes de carga são essenciais para garantir que um sistema possa lidar com a demanda esperada de usuários e transações, sem comprometer sua performance, estabilidade ou segurança. Nesta documentação, exploraremos o que são testes de carga, sua importância para decisões arquiteturais do sistema, e como o framework TypeScript k6 pode ser utilizado para implementá-los.
 
@@ -35,43 +33,6 @@ Características principais do k6:
     - Execução Distribuída: Capacidade de distribuir a execução de testes em vários nós, facilitando a simulação de grandes volumes de usuários.
     - Integração com CI/CD: Pode ser facilmente integrado a pipelines de CI/CD para automatizar a execução de testes de carga em cada versão do sistema.
 
-## Exemplo de script de teste utilizando k6 (TypeScript)
-
-Aqui está um exemplo de script de teste de carga escrito em TypeScript utilizando o framework k6:
-
-```typescript
-
-import http from 'k6/http';
-import { sleep, randomIntBetween } from 'k6';
-
-export const options = {
-    thresholds: {
-        http_req_failed: ['rate<0.05'],
-        http_req_duration: ['p(95)<300'],
-    },
-    vus: 10,
-    duration: '30s',
-};
-
-export default function () {
-    const baseUrl = 'http://localhost:3000';
-
-    http.get(baseUrl);
-    http.get(baseUrl + '/pyxis');
-    http.get(baseUrl + '/catalog');
-
-    const pyxisPayload = JSON.stringify({ floor: randomIntBetween(1, 11), block: 'exampleBlock' });
-    http.post(baseUrl + '/pyxis', pyxisPayload, { headers: { 'Content-Type': 'application/json' } });
-
-    const catalogPayload = JSON.stringify({ name: 'exampleMedicineName' });
-    http.post(baseUrl + '/catalog', catalogPayload, { headers: { 'Content-Type': 'application/json' } });
-
-    sleep(1);
-};
-```
-
-Este script simula uma carga de 10 usuários durante 30 segundos, realizando requisições HTTP GET e POST para endpoints específicos da aplicação.
-
 ## Executando testes de carga com k6
 
 Para executar o script de teste de carga com k6, basta instalar o k6 CLI e executar o comando `k6 run` com o arquivo de script como argumento:
@@ -80,35 +41,29 @@ import { Steps } from '@astrojs/starlight/components';
 
 <Steps>
 
-1. Clone o repositorio do projeto e vá para a pasta `load-test`:
-    ```bash
-    git clone https://github.com/Inteli-College/2024-1B-T02-EC10-G03.git
-    cd 2024-1B-T02-EC10-G03/src/load-test
+1. Navegue até a pasta `load-test`:
+
+    ```bash title="Terminal"
+    cd src/load-test
     ```
 
-2. Instale as dependências localizadas na pasta `load-test`:
-    ```bash
-    bun install
+2. Tenha executado a API localmente ou remotamente, para isso, siga os passos descritos na documentação de [configuração do ambiente de desenvolvimento](/2024-1B-T02-EC10-G03/sprint-2/system/setup/development/) ou [configuração do ambiente de produção](/2024-1B-T02-EC10-G03/sprint-2/system/setup/production/), conforme necessário.
+
+3. Execute o docker compose para subir o ambiente de teste:
+
+    Para o servidor executado localmente:
+
+    ```bash title="Terminal"
+    HOST_IP=$(hostname -I | cut -d' ' -f1) docker compose -f docker-compose.yml up --build
     ```
 
-3. Agrupe os arquivos TypeScript:
-    ```bash
-    # Se tiver o bun instalado
-    bun bundle
+    Caso o servidor esteja em um ambiente de produção ou em um servidor remoto, substitua o valor de `HOST_IP` pelo IP do servidor:
 
-    # Se não tiver o bun instalado
-    npm run bundle
+    ```bash title="Terminal"
+    HOST_IP=<ip> docker compose -f docker-compose.yml up --build
     ```
 
-4. Defina o Hostname:
-    ```bash
-    export HOSTNAME="your_hostname_here"
-    ```
-
-5. Rode os testes de carga com o k6:
-    ```bash
-    k6 run dist/index.test.js
-    ```
+4. O script do K6 será executado e você poderá visualizar as métricas de desempenho obtidas durante o teste pela interface do [grafana](https://grafana.com/) acessando o endereço [http://localhost:3030](http://localhost:3000). Atualmente temos já uma dashboard configurada para visualização das métricas que consome de um banco de dados [InfluxDB](https://www.influxdata.com/).
 
 </Steps>
 
@@ -116,21 +71,24 @@ import { Steps } from '@astrojs/starlight/components';
 
 Rodando o teste para a API desenvolvida, obtivemos as seguintes métricas:
 
-![K6](../../../../assets/k6-summary.png)
-
-![K6](../../../../assets/k6-tasks.png)
-
-![K6](../../../../assets/k6-metrics.png)
-
+![Métricas do teste de carga](../../../../../assets/k6-grafana.png)
 
 Observando as métricas, temos que:
 
-- `checks` - Número de verificações executadas durante o teste. Houve 100% de sucesso nas verificações.
-- `http_req_duration` - Duração média das requisições HTTP. O percentil 95 foi de 5 microsegundos e a média foi de 3.92 microsegundos.
-- `http_req_failed` - Número de requisições HTTP que falharam durante o teste. Nenhuma requisição falhou.
-- `http_reqs` - Número total de requisições HTTP feitas durante o teste. Foram feitas 6542 requisições.
-- `iterations` - Número total de iterações executadas durante o teste. Foram executadas 963 iterações.
-- `vus` - Número de usuários virtuais (VUs) ativos durante o teste. Foram utilizados entre 5 e 10 VUs.
+-   **checks** - Número de verificações executadas durante o teste. Houve `100% de sucesso` nas verificações.
+-   **http_req_duration** - Duração média, mínima, mediana, máxima e percentis (90 e 95) das requisições HTTP. A duração média foi de `23.23ms`.
+-   **http_req_failed** - Porcentagem de falhas nas requisições HTTP. `Não houve falhas` durante o teste.
+-   **http_reqs** - Número total de requisições HTTP feitas durante o teste. Foram feitas `288975 requisições`, com uma taxa de `2403.96 requisições por segundo`,
+-   **iteration_duration** - Duração média, mínima, mediana, máxima e percentis (90 e 95) das iterações. A duração média foi de `584.73ms`.
+-   **iterations** - Número total de iterações executadas durante o teste. Foram executadas `11559 iterações`, com uma taxa de `96.158453 iterações por segundo`.
+
+Assim, como podemos observar, o teste foi bem sucedido, sem falhas e com uma taxa de requisições e iterações satisfatória com base nos parâmetros definidos de:
+
+-   Duração média das requisições HTTP menor que 50ms.
+-   Percentil 95 das requisições HTTP menor que 150ms.
+-   Duração máxima das requisições HTTP menor que 500ms.
+-   Taxa de falhas nas requisições HTTP menor que 1%.
+-   50 usuários virtuais no ramp-up, 100 usuários virtuais no estado estável e 0 usuários virtuais no ramp-down.
 
 ## Conclusão
 

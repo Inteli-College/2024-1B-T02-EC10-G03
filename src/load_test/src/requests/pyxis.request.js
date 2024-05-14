@@ -1,18 +1,6 @@
 import http from 'k6/http';
-import { check, sleep } from 'k6';
+import { check } from 'k6';
 import { randomString, randomIntBetween } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
-
-export const options = {
-	thresholds: {
-		http_req_failed: ['rate<0.01'], // http errors should be less than 1%
-		http_req_duration: ['avg<100', 'p(95)<200', 'max<400'], // http requests duration should be less than 50ms on average, 95th percentile should be below 100ms, and maximum below 200ms
-	},
-	stages: [
-		{ duration: '10s', target: 100 }, // ramp-up to 100 users
-		{ duration: '30s', target: 200 }, // steady state at 200 users
-		{ duration: '10s', target: 0 }, // ramp-down to 0 users
-	],
-};
 
 const BASE_URL = `http://${__ENV.HOSTNAME}:3000`;
 
@@ -66,7 +54,7 @@ export function deletePyxis(pyxisId) {
 	});
 }
 
-export default function () {
+export default function pyxisTest() {
 	getAllPyxis();
 
 	let createdPyxisId = createPyxis(randomIntBetween(1, 100), randomString(8));

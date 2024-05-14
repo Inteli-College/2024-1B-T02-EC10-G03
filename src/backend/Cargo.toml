@@ -31,3 +31,7 @@ chrono = { version = "0.4.38", features = ["serde"] }
 [workspace]
 resolver = "2"
 members = ["prisma-cli"]
+
+[profile.release]
+opt-level = 3
+lto = true

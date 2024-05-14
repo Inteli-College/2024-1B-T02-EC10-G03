@@ -1,0 +1,54 @@
+networks:
+    k6:
+    grafana:
+
+services:
+    influxdb:
+        image: influxdb:1.8
+        networks:
+            - k6
+            - grafana
+        ports:
+            - '8086:8086'
+        environment:
+            - INFLUXDB_DB=k6
+
+    grafana:
+        image: grafana/grafana:9.3.8
+        networks:
+            - grafana
+        ports:
+            - '3030:3030'
+        environment:
+            - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+            - GF_AUTH_ANONYMOUS_ENABLED=true
+            - GF_AUTH_BASIC_ENABLED=false
+            - GF_SERVER_HTTP_PORT=3030
+        volumes:
+            - ./dashboards:/var/lib/grafana/dashboards
+            - ./grafana-dashboard.yaml:/etc/grafana/provisioning/dashboards/dashboard.yaml
+            - ./grafana-datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+
+    build:
+        build:
+            context: .
+            dockerfile: Dockerfile.base
+        volumes:
+            - .:/app
+        command: sh -c "yarn install && yarn run bundle"
+
+    k6:
+        image: grafana/k6:latest
+        networks:
+            - k6
+        ports:
+            - '6565:6565'
+        environment:
+            - K6_OUT=influxdb=http://influxdb:8086/k6
+            - HOSTNAME=${HOST_IP}
+        volumes:
+            - ./dist:/scripts
+        depends_on:
+            build:
+                condition: service_completed_successfully
+        command: run -e HOSTNAME=${HOST_IP} /scripts/main.test.js

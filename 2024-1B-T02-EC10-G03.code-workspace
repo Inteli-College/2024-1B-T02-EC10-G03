@@ -31,6 +31,10 @@
 		{
 			"path": "src/ai_processor",
 			"name": "AI Processor"
+		},
+		{
+			"path": "src/kubernetes",
+			"name": "Kubernetes"
 		}
 	],
 	"settings": {

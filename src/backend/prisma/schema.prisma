@@ -80,13 +80,15 @@ model Transaction {
     patientUuid    String
     medicine       Medicine        @relation(fields: [medicineId], references: [id])
     medicineId     String
+    pyxis          Pyxis           @relation(fields: [pyxisUuid], references: [uuid])
+    pyxisUuid      String
     quantity       Int
     validation     Validation      @relation(fields: [validationUuid], references: [uuid])
     validationUuid String
     createdAt      DateTime        @default(now())
     PatientReport  PatientReport[]
 
-    @@index([employeeUuid, patientUuid, medicineId])
+    @@index([employeeUuid, patientUuid, medicineId, pyxisUuid, validationUuid])
 }
 
 model OverriddenTransaction {
@@ -129,6 +131,7 @@ model Pyxis {
     createdAt   DateTime      @default(now())
     Inventory   Inventory[]
     PyxisReport PyxisReport[]
+    Transaction Transaction[]
 
     @@unique([floor, block])
     @@index([floor, block])

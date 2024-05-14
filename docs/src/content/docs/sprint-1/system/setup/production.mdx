@@ -33,7 +33,7 @@ Para fazer o deploy do dashboard em um ambiente de produção, ou seja, criar o 
 
 3.  Pegue o seu `EXPO_TOKEN` e o `EAS_ID` do projeto. Para isso, acesse o [tokens de acesso Expo](https://expo.dev/accounts/[account]/settings/access-tokens) e crie um novo token de acesso para pegar o `EXPO_TOKEN`. Acesse o [projetos Expo](https://expo.dev/accounts/[account]/projects) para criar e pegar o `EAS_ID` do projeto. Adicione/Atualize essas informações no arquivo `.env`. Segue o exemplo do arquivo `.env`:
 
-        ```sh title=".env"
+        ```bash title=".env"
         EXPO_TOKEN=your-expo-token
         EAS_ID=your-eas-id
         ```
@@ -68,7 +68,7 @@ Para iniciar o servidor do backend localmente, siga as instruções:
 
 3.  Atualize a URL do database no arquivo `.env` para a URL do banco de dados de produção. É importante lembrar que o banco de dados deve estar acessível para o backend e que as credenciais de acesso devem ser configuradas corretamente, executar o docker em produção não gerará um banco de dados local. Segue o exemplo do arquivo `.env`:
 
-            ```sh title=".env"
+            ```bash title=".env"
             # Server log level
             RUST_LOG=info
 
