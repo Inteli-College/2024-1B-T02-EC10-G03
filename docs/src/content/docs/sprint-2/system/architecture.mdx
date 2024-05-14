@@ -1,7 +1,7 @@
 ---
 title: Arquitetura
 sidebar:
-    order: 1
+    order: -1
 description: Proposta de implementação inicial do sistema.
 ---
 
@@ -11,7 +11,7 @@ Aqui apresentamos a arquitetura proposta para o sistema, que foi elaborada com b
 
 A arquitetura do sistema é composta por diversos componentes que interagem entre si para fornecer a funcionalidade desejada. A seguir, apresentamos uma visão geral da implementação inicial da arquitetura proposta para o sistema.
 
-<iframe style={{ border: 'none', height: '450px', width: '800px' }} src="https://whimsical.com/embed/4HMkJ3Q4zUPnk7gNcFxp1t@or4CdLRbgiz62x3yPRb4NrzFCJ7MWAVEvUeFewUNs"></iframe>
+<iframe style={{ border: 'none', height: '450px', width: '800px' }} src="https://whimsical.com/embed/4HMkJ3Q4zUPnk7gNcFxp1t@NKBbAEvLSvAFTLfKviNLCDVWKkQvara5w"></iframe>
 
 ## Implementação inicial do sistema
 
@@ -27,7 +27,7 @@ Para elaborar a primeira versão do sistema, foram identificados os [requisitos 
 
 -   **Processador de vídeos**: Para treino, utilizaremos o [_Google Colab_](https://colab.research.google.com/), que é um ambiente de desenvolvimento integrado baseado na nuvem, que permite a execução de códigos em [_Python_](https://www.python.org/) e a utilização da biblioteca do [_Yolo Ultralytics_](https://docs.ultralytics.com/) para processamento de vídeos, e a ferramenta do [_Roboflow_](https://roboflow.com/) para adquirir os datasets. Agora para a implementação do modelo, utilizaremos o [_OpenCV_](https://opencv.org/) para resgatar as imágens, e o próprio [_Yolo Ultralytics_](https://docs.ultralytics.com/) para processar os vídeos.
 
--   **Teste de carga**: Para testar a capacidade do sistema, utilizaremos o [_K6_](https://k6.io/), que é uma ferramenta de teste de carga e desempenho de código aberto, que permite simular o comportamento de usuários em um sistema em produção. Será utilizado o [_Webpack_](https://webpack.js.org/) para empacotar e transpilar o código [_Typescript_](https://www.typescriptlang.org/) para uso no [_K6_](https://k6.io/).
+-   **Teste de carga**: Para testar a capacidade do sistema, utilizaremos o [_K6_](https://k6.io/), que é uma ferramenta de teste de carga e desempenho de código aberto, que permite simular o comportamento de usuários em um sistema em produção. Será utilizado o [_Webpack_](https://webpack.js.org/) para empacotar e transpilar o código para uso no [_K6_](https://k6.io/). Também será utilizado o [_Grafana_](https://grafana.com/) para visualização dos dados gerados pelos testes de carga.
 
 -   **Sistema de filas**: Para a comunicação entre os serviços de processamento de vídeos e o backend, utilizaremos o [_Kafka_](https://kafka.apache.org/), hospeado no [_Amazon Managed Streaming for Apache Kafka (MSK)_](https://aws.amazon.com/pt/msk/), que é um serviço gerenciado de streaming de dados da [_AWS_](https://aws.amazon.com/) que permite a criação de aplicações de streaming em tempo real de maneira escalável e segura.
 
