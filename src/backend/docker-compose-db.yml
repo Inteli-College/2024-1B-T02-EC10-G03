@@ -6,23 +6,16 @@ services:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
             POSTGRES_DB: postgres
-            POSTGRES_SHARED_BUFFERS: 3GB
-            POSTGRES_MAX_CONNECTIONS: 100
-            POSTGRES_WORK_MEM: 32MB
-            POSTGRES_MAINTENANCE_WORK_MEM: 256MB
-            POSTGRES_EFFECTIVE_CACHE_SIZE: 4GB
-            POSTGRES_CHECKPOINT_SEGMENTS: 32
-            POSTGRES_WAL_BUFFERS: 16MB
-            POSTGRES_RANDOM_PAGE_COST: 1.1
-            POSTGRES_EFFECTIVE_IO_CONCURRENCY: 200
-            POSTGRES_MAX_WORKER_PROCESSES: 8
-            POSTGRES_MAX_PARALLEL_WORKERS: 4
 
         ports:
             - '5432:5432'
         volumes:
             - '.cache/postgres:/var/lib/postgresql/data'
-
+        healthcheck:
+            test: ['CMD', 'pg_isready', '-q', '-d', 'postgres', '-U', 'postgres']
+            interval: 5s
+            timeout: 5s
+            retries: 5
     redis:
         image: redis:latest
         tty: true
@@ -30,3 +23,8 @@ services:
             - '6379:6379'
         volumes:
             - '.cache/redis:/data'
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 5s
+            timeout: 5s
+            retries: 5

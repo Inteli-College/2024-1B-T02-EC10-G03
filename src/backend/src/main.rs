@@ -14,13 +14,13 @@ mod utils;
 
 use crate::states::app::AppState;
 use db::*;
-use dotenvy_macro::dotenv;
 use ntex::{
 	http,
 	web::{self, middleware, App},
 };
 use ntex_cors::Cors;
 use redis;
+use std::env;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -30,17 +30,22 @@ async fn main() -> std::io::Result<()> {
 	pretty_env_logger::init();
 
 	info!("Starting server...");
-	let database = PrismaClient::_builder().build().await.unwrap();
+	let database = PrismaClient::_builder().build().await.expect("Failed to connect to database");
 	info!("Connected to database!");
 
 	info!("Running migrations...");
 	#[cfg(debug_assertions)]
-	database._db_push().await.unwrap();
+	database._db_push().await.expect("Failed to push database schema");
 	#[cfg(not(debug_assertions))]
-	database._migrate_deploy().await.unwrap();
+	database._migrate_deploy().await.expect("Failed to migrate database schema");
 	info!("Database schema is up to date!");
 
-	let redis = redis::Client::open(dotenv!("REDIS_URL")).unwrap().get_multiplexed_async_connection().await.unwrap();
+	let redis = redis::Client::open(env::var("REDIS_URL").expect("REDIS_URL must be set"))
+		.expect("Failed to connect to Redis")
+		.get_multiplexed_async_connection()
+		.await
+		.expect("Failed to get Redis connection");
+
 	let database = Arc::new(database);
 	let repositories = repositories::Repositories::new(database.clone());
 
