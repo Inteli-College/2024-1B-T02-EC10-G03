@@ -36,9 +36,9 @@ async fn main() -> std::io::Result<()> {
 	info!("Running migrations...");
 	#[cfg(debug_assertions)]
 	database._db_push().await.expect("Failed to push database schema");
-	#[cfg(not(debug_assertions))]
-	database._migrate_deploy().await.expect("Failed to migrate database schema");
-	info!("Database schema is up to date!");
+	//#[cfg(not(debug_assertions))]
+	//database._migrate_deploy().await.expect("Failed to migrate database schema");
+	//info!("Database schema is up to date!");
 
 	let redis = redis::Client::open(env::var("REDIS_URL").expect("REDIS_URL must be set"))
 		.expect("Failed to connect to Redis")

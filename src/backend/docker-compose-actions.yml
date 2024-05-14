@@ -12,8 +12,12 @@ services:
     app:
         build:
             context: .
-            dockerfile: Dockerfile.prod
+            dockerfile: Dockerfile.dev
         tty: true
+        command: sh -c "cargo prisma generate && cargo prisma db push && cargo run --release"
+        volumes:
+            - .:/usr/src/app
+            - .cache/cargo-cache:/usr/local/cargo/target
         depends_on:
             postgres:
                 condition: service_healthy
@@ -22,6 +26,6 @@ services:
         ports:
             - '3000:3000'
         environment:
-            RUST_LOG: info
+            RUST_LOG: error
             DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres?schema=public
             REDIS_URL: redis://redis:6379
