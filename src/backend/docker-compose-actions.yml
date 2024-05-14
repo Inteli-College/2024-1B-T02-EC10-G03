@@ -22,5 +22,6 @@ services:
         ports:
             - '3000:3000'
         environment:
+            RUST_LOG: info
             DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres?schema=public
             REDIS_URL: redis://redis:6379

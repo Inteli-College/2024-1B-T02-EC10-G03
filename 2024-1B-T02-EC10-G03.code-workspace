@@ -46,7 +46,8 @@
 			"frontend",
 			"metabase",
 			"pyxis",
-			"load_test"
+			"load_test",
+			"kubernetes"
 		],
 	},
 	"extensions": {
