@@ -1,0 +1,98 @@
+---
+title: Introdução
+sidebar:
+    order: 0
+description: Introdução ao Setup do Sistema
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+O setup do sistema é uma etapa fundamental para garantir o correto funcionamento da aplicação. Neste guia, apresentamos as instruções necessárias para configurar o ambiente de desenvolvimento e produção do sistema, incluindo a instalação das ferramentas e dependências necessárias.
+
+<Aside>Este guia é destinado a desenvolvedores e administradores de sistemas que desejam configurar o ambiente de desenvolvimento e produção do sistema localmente.</Aside>
+
+## Ambientes
+
+O sistema possui dois ambientes principais: desenvolvimento e produção. Cada ambiente possui suas próprias configurações e dependências, que devem ser instaladas de acordo com as instruções fornecidas em cada seção.
+
+## Pré-requisitos
+
+-   **Sistema Operacional**: Tanto para o ambiente de desenvolvimento quanto para o ambiente de produção, é necessário o uso de um sistema operacional unix-like, recomendamos o uso do [_Ubuntu 24.04 LTS_](https://ubuntu.com/download/desktop).
+-   **Docker e Docker Compose**: O sistema utiliza o Docker para gerenciar os containers da aplicação. Para instalar o Docker, siga as instruções disponíveis no site oficial do [_Docker_](https://docs.docker.com/get-docker/).
+-   **MiniKube**: Para o ambiente de desenvolvimento, é necessário instalar o [_MiniKube_](https://minikube.sigs.k8s.io/docs/start/), que é uma ferramenta que permite executar um cluster Kubernetes localmente.
+-   **Virtual Studio Code**: Recomendamos o uso do [_Visual Studio Code_](https://code.visualstudio.com/) como editor de código para o desenvolvimento do sistema.
+-   **Git**: O sistema utiliza o Git para controle de versão do código fonte. Para instalar o Git, siga as instruções disponíveis no site oficial do [_Git_](https://git-scm.com/).
+-   **Sistema Embarcado**: Para o ambiente de produção, é necessário um microprocessador [_Raspberry Pi_](https://www.raspberrypi.org/). recomenda-se o uso do [_Raspberry Pi 5_](https://www.raspberrypi.com/products/raspberry-pi-5/), junto do sistema operacional [_Raspberry Pi OS_](https://www.raspberrypi.org/software/) e instalação do [_Docker_](https://docs.docker.com/get-docker/). Há também requisitos de hardware para a aplicação embarcada, que serão detalhados na seção correspondente.
+-   **Expo Go**: Para o ambiente de desenvolvimento, é necessário instalar o aplicativo [_Expo Go_](https://expo.dev/go) em seu dispositivo móvel para acessar o dashboard.
+
+## Estrutura básica do Projeto
+
+O projeto é dividido em modulos, cada um responsável por uma parte específica da aplicação. A seguir, apresentamos a estrutura do projeto e os modulos que compõem o sistema.
+
+import { FileTree } from '@astrojs/starlight/components';
+
+<FileTree>
+
+-   .github/
+    -   workflows/
+        -   pages.yml # CI de auto-deploy da documentação
+    -   renovate.json # Configuração do Renovate para atualização automática de dependências
+-   docs/ # Documentação do projeto
+-   src/ # Código fonte do projeto
+    -   ai-processor/ # Processador de vídeos
+    -   backend/ # Backend da aplicação
+    -   frontend/ # Frontend da aplicação
+    -   load_test/ # Teste de carga
+    -   metabase/ # Metabase para análise de dados
+    -   pyxis/ # Simulador da estação médica Pyxis
+    -   kubernetes/ # Configurações do Kubernetes
+-   .gitignore # Arquivo de configuração do Git
+-   README.md # Orientações gerais sobre o projeto
+-   2024-1B-T02-EC10-G03.code-workspace # Workspace para o Visual Studio Code
+
+</FileTree>
+
+## Workspace
+
+Para ir para as seções de configuração dos ambientes de desenvolvimento e produção, primeiro é necessário iniciar o ambiente de desenvolvimento. Para isso, siga as instruções abaixo:
+
+import { Steps } from '@astrojs/starlight/components';
+
+<Steps>
+
+1. Clone o repositório do projeto em sua máquina local utilizando o comando:
+
+    ```bash title="Terminal"
+    git clone git@github.com:Inteli-College/2024-1B-T02-EC10-G03.git
+    ```
+
+2. Vá para o diretório do projeto:
+
+    ```bash title="Terminal"
+    cd 2024-1B-T02-EC10-G03
+    ```
+
+3. Abra o projeto no Visual Studio Code com o Workspace fornecido:
+
+    ```bash title="Terminal"
+    code 2024-1B-T02-EC10-G03.code-workspace
+    ```
+
+    Ou abra o projeto manualmente no Visual Studio Code e abra o arquivo `2024-1B-T02-EC10-G03.code-workspace`, depois clique em "Abrir o Workspace".
+
+4. Agora você está pronto para prosseguir com a configuração dos ambientes de desenvolvimento e produção do sistema.
+
+</Steps>
+
+## Ambientes
+
+Agora que você já conhece os pré-requisitos necessários e a estrutura do projeto, vamos prosseguir com a configuração dos ambientes de desenvolvimento e produção do sistema.
+
+import { Card, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+	<LinkCard title="Desenvolvimento" description="Configuração do ambiente de desenvolvimento do sistema." href="/2024-1B-T02-EC10-G03/sprint-2/system/setup/development/" />
+	<LinkCard title="Produção" description="Configuração do ambiente de produção do sistema." href="/2024-1B-T02-EC10-G03/sprint-2/system/setup/production/" />
+	<LinkCard title="Teste de Carga" description="Configuração do ambiente de teste de carga do sistema." href="/2024-1B-T02-EC10-G03/sprint-2/system/setup/load-test/" />
+	<LinkCard title="Orquestrador de Containers" description="Configuração do orquestrador de containers do sistema." href="/2024-1B-T02-EC10-G03/sprint-2/system/setup/orchestrator/" />
+</CardGrid>

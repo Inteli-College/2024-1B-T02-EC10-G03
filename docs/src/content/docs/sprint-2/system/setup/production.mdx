@@ -1,0 +1,151 @@
+---
+title: Produção
+sidebar:
+    order: 2
+description: Configuração do ambiente de produção do sistema.
+---
+
+Para iniciar os serviços do sistema para produção, siga as instruções abaixo para cada um dos serviços.
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+## Documentação
+
+Atualmente a documentação não exige a utilização de um ambiente de produção específico, pois é servida através do GitHub Pages. Para mais informais sobre o pipeline de CI/CD da documentação, acesse o arquivo [`.github/workflows/pages.yml`](https://github.com/Inteli-College/2024-1B-T02-EC10-G03/blob/main/.github/workflows/pages.yml) no repositório do projeto.
+
+## Frontend
+
+Para fazer o deploy do dashboard em um ambiente de produção, ou seja, criar o build do aplicativo e disponibilizá-lo para os usuários finais, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório do dashboard:
+
+    ```bash title="Terminal"
+    cd src/frontend
+    ```
+
+2.  Crie um arquivo `.env` com as variáveis de ambiente necessárias para o dashboard. Você pode copiar o arquivo de exemplo `.env.example` e ajustar as configurações conforme necessário.
+
+    ```bash title="Terminal"
+    cp .env.example .env
+    ```
+
+3.  Pegue o seu `EXPO_TOKEN` e o `EAS_ID` do projeto. Para isso, acesse o [tokens de acesso Expo](https://expo.dev/accounts/[account]/settings/access-tokens) e crie um novo token de acesso para pegar o `EXPO_TOKEN`. Acesse o [projetos Expo](https://expo.dev/accounts/[account]/projects) para criar e pegar o `EAS_ID` do projeto. Adicione/Atualize essas informações no arquivo `.env`. Segue o exemplo do arquivo `.env`:
+
+    ```bash title=".env"
+    # API URL
+    API_URL = http://localhost:3000
+
+    # Expo token
+    EXPO_TOKEN=your-expo-token
+
+    # EAS ID
+    EAS_ID=your-eas-id
+    ```
+
+4.  Execute o comando para fazer o build do aplicativo:
+
+    ```bash title="Terminal"
+    docker compose -f docker-compose-prod.yml up --build
+    ```
+
+5.  Agora será necessário aguardar o término do build do aplicativo. Você pode acompanhar pelo terminal o progresso do build, ou acessar o projeto diretamente em [projetos Expo](https://expo.dev/accounts/[account]/projects), assim você pode baixar o build gerado.
+
+</Steps>
+
+## Backend
+
+Para iniciar o servidor do backend localmente, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório do backend:
+
+    ```bash title="Terminal"
+    cd src/backend
+    ```
+
+2.  Crie um arquivo `.env` com as variáveis de ambiente necessárias para o backend. Você pode copiar o arquivo de exemplo `.env.example` e ajustar as configurações conforme necessário.
+
+    ```bash title="Terminal"
+    cp .env.example .env
+    ```
+
+3.  Atualize as informações do `.env` para os dados de produção. Segue o exemplo do arquivo `.env`:
+
+    ```bash title=".env"
+    # Server log level
+    RUST_LOG=info
+
+    # Database URL
+    DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres?schema=public"
+
+    # Redis URL
+    REDIS_URL="redis://localhost:6379"
+    ```
+
+4.  Execute o docker-compose para iniciar o servidor do backend:
+
+    ```bash title="Terminal"
+    docker compose -f docker-compose-prod.yml up --build
+    ```
+
+5.  Agora você pode acessar o backend em [http://localhost:3000/](http://localhost:3000/) ou no endereço público do servidor de produção.
+
+</Steps>
+
+## Pyxis
+
+Atualmente o Pyxis não possui um ambiente de embarcado construido, ou seja, não é necessário de um dispositivo como o [raspberry pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/) para rodar o Pyxis, então é possível apenas rodar o Pyxis localmente. Para isso, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório do Pyxis:
+
+    ```bash title="Terminal"
+    cd src/pyxis
+    ```
+
+2.  Crie um arquivo `.env` com as variáveis de ambiente necessárias para o Pyxis. Você pode copiar o arquivo de exemplo `.env.example` e ajustar as configurações conforme necessário.
+
+    ```bash title="Terminal"
+    cp .env.example .env
+    ```
+
+3.  Atualize as informações do `.env` para os dados de produção. Segue o exemplo do arquivo `.env`:
+
+    ```bash title=".env"
+    # Bootstrap server for kafka
+    BOOTSTRAP_SERVER="localhost:29092"
+
+    # Client id for kafka
+    CLIENT_ID="python-producer"
+
+    # Kafka topic
+    TOPIC="test-topic"
+    ```
+
+4.  Execute o docker-compose para iniciar o servidor do Pyxis:
+
+    ```bash title="Terminal"
+    docker compose -f docker-compose-prod.yml up --build
+    ```
+
+5.  Agora você pode verificar os logs do Pyxis no terminal e verificar que está sendo publicado no tópico do [kafka](https://kafka.apache.org/). Exemplo de saída no terminal:
+
+    ```bash title="Terminal"
+    app-1      | Creating producer...
+    app-1      | Producer created!
+    app-1      | Starting to produce messages...
+    app-1      |    Generating mock transaction...
+    app-1      |            Generated mock transaction:
+    app-1      |            TransactionRequest(transaction_type=<TransactionType.OUT: 'OUT'>, employee_uuid='employee_123', patient_uuid='patient_456', pyxis_uuid='pyxis_789', medicine_id='med_789', quantity=5, created_at='2024-05-14T05:31:50.570284', validation_video_path='s3/path/to/video', open_at='2024-05-14T05:31:50.570293', finished_at='2024-05-14T05:31:52.571064')
+    app-1      |            transaction_request.is_valid(): True
+    app-1      |    Mock transaction generated!
+    app-1      |    Producing message...
+    app-1      |            Message delivered to topic "test-topic"
+    app-1      |    Message produced!
+    ```
+
+</Steps>

@@ -1,9 +1,10 @@
 ---
 title: Sistema de Orquestração
 sidebar:
-    order: 3
+    order: 4
 description: Apresentação realizada na sprint review.
 ---
+
 import { FileTree } from '@astrojs/starlight/components';
 
 ## Introdução
@@ -20,10 +21,10 @@ Kubernetes é um orquestrador de containers open-source desenvolvido pelo Google
 
 ## Vantagens
 
-- **Escalabilidade**: Kubernetes permite que você aumente ou diminua o número de containers de acordo com a demanda.
-- **Automação**: Kubernetes automatiza tarefas como implantação, dimensionamento e monitoramento.
-- **Portabilidade**: Kubernetes é compatível com várias plataformas, como AWS, Azure e Google Cloud.
-- **Resiliência**: Kubernetes garante que os containers estejam sempre disponíveis e saudáveis.
+-   **Escalabilidade**: Kubernetes permite que você aumente ou diminua o número de containers de acordo com a demanda.
+-   **Automação**: Kubernetes automatiza tarefas como implantação, dimensionamento e monitoramento.
+-   **Portabilidade**: Kubernetes é compatível com várias plataformas, como AWS, Azure e Google Cloud.
+-   **Resiliência**: Kubernetes garante que os containers estejam sempre disponíveis e saudáveis.
 
 ## Objetivo
 
@@ -37,26 +38,39 @@ Estrutura da implantação:
 
 <FileTree>
 
-- docs/
-- src
-    - ...
-    - kubernetes
-        - **app-config.yaml**
-        - **app-deployment.yaml**
-        - **app-service.yaml**
-        - **app-pvc.yaml**
-        - **postgres-deployment.yaml**
-        - **postgres-service.yaml**
-        - **postgres-pvc.yaml**
-        - **setup.sh**
-    - ...
+-   docs/
+-   src
+    -   ...
+    -   kubernetes
+        -   **app-config.yaml**
+        -   **app-deployment.yaml**
+        -   **app-service.yaml**
+        -   **app-pvc.yaml**
+        -   **postgres-deployment.yaml**
+        -   **postgres-service.yaml**
+        -   **postgres-pvc.yaml**
+        -   **setup.sh**
+    -   ...
+
 </FileTree>
 
-Na estrutura acima, temos os arquivos de configuração necessários para implantar uma aplicação em Kubernetes. O arquivo `setup.sh` é responsável por criar os recursos no cluster, como deployments, services e persistent volumes. 
+Na estrutura acima, temos os arquivos de configuração necessários para implantar uma aplicação em Kubernetes. O arquivo `setup.sh` é responsável por criar os recursos no cluster, como deployments, services e persistent volumes.
 
 Desta forma, simplificando o processo de teste e validação de aplicações em Kubernetes pode ser feito de forma rápida e eficiente, utilizando o seguinte comando:
 
-```bash
-cd src/kubernetes
-sh setup.sh
-```
+import { Steps } from '@astrojs/starlight/components';
+
+<Steps>
+
+1. Navegue até o diretório `kubernetes`:
+
+    ```bash title="Terminal"
+    cd src/kubernetes
+    ```
+
+2. Execute o script de configuração e implantação:
+    ```bash title="Terminal"
+    sh setup.sh
+    ```
+
+</Steps>

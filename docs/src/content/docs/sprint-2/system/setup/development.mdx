@@ -1,0 +1,118 @@
+---
+title: Desenvolvimento
+sidebar:
+    order: 1
+description: Configuração do ambiente de desenvolvimento do sistema.
+---
+
+Para iniciar os serviços do sistema para desenvolvimento, siga as instruções abaixo para cada um dos serviços.
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+## Documentação
+
+Para iniciar o servidor de documentação localmente, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório da documentação:
+
+    ```bash title="Terminal"
+    cd docs
+    ```
+
+2.  Execute o docker-compose para iniciar o servidor de documentação:
+
+    ```bash title="Terminal"
+    docker compose -f docker-compose.yml up --build
+    ```
+
+3.  Agora você pode acessar a documentação em [http://localhost:4321/2024-1B-T02-EC10-G03/](http://localhost:4321/2024-1B-T02-EC10-G03/).
+
+</Steps>
+
+Todas as alterações feitas nos arquivos da documentação serão refletidas automaticamente no servidor de documentação.
+
+## Frontend
+
+Para iniciar o servidor do dashboard localmente, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório do dashboard:
+
+    ```bash title="Terminal"
+    cd src/frontend
+    ```
+
+2.  Execute o docker-compose para iniciar o servidor do dashboard:
+
+    ```bash title="Terminal"
+    docker compose -f docker-compose-dev.yml up --build
+    ```
+
+3.  Agora você pode usar o aplicativo do [_Expo Go_](https://expo.dev/go) para acessar o dashboard em seu dispositivo móvel. Abra o aplicativo e escaneie o QR Code exibido no terminal ou acesse o link fornecido, assim você poderá visualizar o dashboard em tempo real.
+
+</Steps>
+
+## Backend
+
+Para iniciar o servidor do backend localmente, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório do backend:
+
+    ```bash title="Terminal"
+    cd src/backend
+    ```
+
+2.  Execute o docker-compose para iniciar o servidor do backend:
+
+    ```bash title="Terminal"
+    docker compose -f docker-compose-dev.yml up --build
+    ```
+
+3.  Agora você pode acessar o backend em [http://localhost:3000/](http://localhost:3000/). Ou caso queira acessar a atual documentação swagger do backend, acesse [http://localhost:3000/swagger/#/](http://localhost:3000/swagger/#/). Também é possível adquirir a coleção de requisições do [Insomnia](https://insomnia.rest/) para o backend na pasta de [assets](https://github.com/Inteli-College/2024-1B-T02-EC10-G03/tree/main/src/backend/assets) do repositório backend.
+
+</Steps>
+
+<Aside>Automaticamente será criado um banco de dados local com as configurações padrão para ambiente de desenvolvimento.</Aside>
+
+## Pyxis
+
+Atualmente o Pyxis não possui um ambiente de embarcado construido, ou seja, não é necessário de um dispositivo como o [raspberry pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/) para rodar o Pyxis, então é possível apenas rodar o Pyxis localmente. Para isso, siga as instruções:
+
+<Steps>
+
+1.  Vá para o diretório do Pyxis:
+
+    ```bash title="Terminal"
+    cd src/pyxis
+    ```
+
+2.  Execute o docker-compose para iniciar o servidor do Pyxis:
+
+    ```bash title="Terminal"
+    docker compose -f docker-compose-dev.yml up --build
+    ```
+
+3.  Agora você pode verificar os logs do Pyxis no terminal e verificar que está sendo publicado no tópico do [kafka](https://kafka.apache.org/) localmente. Exemplo de saída no terminal:
+
+    ```bash title="Terminal"
+    app-1      | Creating producer...
+    app-1      | Producer created!
+    app-1      | Starting to produce messages...
+    app-1      |    Generating mock transaction...
+    app-1      |            Generated mock transaction:
+    app-1      |            TransactionRequest(transaction_type=<TransactionType.OUT: 'OUT'>, employee_uuid='employee_123', patient_uuid='patient_456', pyxis_uuid='pyxis_789', medicine_id='med_789', quantity=5, created_at='2024-05-14T05:31:50.570284', validation_video_path='s3/path/to/video', open_at='2024-05-14T05:31:50.570293', finished_at='2024-05-14T05:31:52.571064')
+    app-1      |            transaction_request.is_valid(): True
+    app-1      |    Mock transaction generated!
+    app-1      |    Producing message...
+    app-1      |            Message delivered to topic "test-topic"
+    app-1      |    Message produced!
+    ```
+
+</Steps>
+
+<Aside>Automaticamente será criado um container do [kafka](https://kafka.apache.org/) localmente para simular o envio de mensagens do Pyxis.</Aside>
