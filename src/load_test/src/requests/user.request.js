@@ -1,18 +1,6 @@
 import http from 'k6/http';
-import { check, sleep } from 'k6';
+import { check } from 'k6';
 import { randomString } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
-
-export const options = {
-	thresholds: {
-		http_req_failed: ['rate<0.05'], // http errors should be less than 5%
-		http_req_duration: ['avg<50', 'p(95)<100', 'max<300'], // http requests duration should be less than 50ms on average, 95th percentile should be below 100ms, and maximum below 200ms
-	},
-	stages: [
-		{ duration: '10s', target: 50 }, // ramp-up to 50 users
-		{ duration: '30s', target: 100 }, // steady state at 100 users
-		{ duration: '10s', target: 0 }, // ramp-down to 0 users
-	],
-};
 
 const BASE_URL = `http://${__ENV.HOSTNAME}:3000`;
 
@@ -83,7 +71,7 @@ export function createPatient() {
 	return payload;
 }
 
-export default function () {
+export default function userTest() {
 	const employee = createEmployee();
 	const patient = createPatient();
 

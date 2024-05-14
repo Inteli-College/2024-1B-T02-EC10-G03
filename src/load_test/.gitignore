@@ -146,3 +146,4 @@ dist
 # Cache
 package-lock.json
 bun.lockb
+grafana

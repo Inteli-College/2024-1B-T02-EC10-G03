@@ -1,12 +1,13 @@
 const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-const GlobEntries = require('webpack-glob-entries');
 const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
 	mode: 'production',
-	entry: GlobEntries(path.resolve(__dirname, 'src/**/*.js')),
+	entry: {
+		main: './src/simulations/main.test.js',
+	},
 	output: {
 		path: path.join(__dirname, 'dist'),
 		libraryTarget: 'commonjs',
@@ -34,6 +35,7 @@ module.exports = {
 	devtool: 'source-map',
 	stats: {
 		colors: true,
+		warnings: false,
 	},
 	plugins: [
 		new CleanWebpackPlugin(),
