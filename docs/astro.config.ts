@@ -91,6 +91,17 @@ export default defineConfig({
 					label: 'Sprint 3',
 					collapsed: true,
 					autogenerate: { directory: 'sprint-3' },
+					items: [
+						{
+							label: 'Negócios',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-3/business' },
+						},
+						{
+							label: 'Experiência do Usuário',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-3/ux' },
+						},]
 				},
 				{
 					label: 'Sprint 4',
