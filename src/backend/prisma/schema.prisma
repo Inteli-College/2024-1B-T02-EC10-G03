@@ -202,6 +202,7 @@ model PyxisReport {
     medicine     Medicine        @relation(fields: [medicineId], references: [id])
     medicineId   String
     type         PyxisReportType
+    reportStatus ReportStatus    @default(SENT)
     observation  String
     urgency      Boolean
 
@@ -220,7 +221,7 @@ model PatientReport {
     patientUuid     String
     transaction     Transaction       @relation(fields: [transactionUuid], references: [uuid])
     transactionUuid String
-    status          ReportStatus
+    status          ReportStatus      @default(SENT)
     type            PatientReportType
     observation     String
 
