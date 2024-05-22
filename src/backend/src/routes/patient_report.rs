@@ -1,3 +1,4 @@
+use crate::db::PatientReportType;
 use crate::utils::parser::{fetch_patient_report_type, fetch_report_status};
 use crate::{error::HttpError, states::app::AppStateType};
 use ntex::web::{self, HttpResponse};
@@ -87,9 +88,20 @@ pub async fn update_patient_report_status(
 	}
 }
 
+#[web::get("/types")]
+pub async fn list_types() -> HttpResponse {
+	let roles = vec![
+		PatientReportType::NotConsumed.to_string(),
+		PatientReportType::QuantityMismatch.to_string(),
+		PatientReportType::Other.to_string(),
+	];
+	HttpResponse::Ok().json(&roles)
+}
+
 pub fn init(config: &mut web::ServiceConfig) {
 	config.service(
 		web::scope("/patient_report")
+			.service(list_types)
 			.service(get_all_patient_reports)
 			.service(get_patient_report)
 			.service(create_patient_report)
