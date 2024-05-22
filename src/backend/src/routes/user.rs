@@ -170,6 +170,18 @@ pub async fn info(
 	Ok(HttpResponse::Ok().json(&response))
 }
 
+#[web::get("/roles")]
+pub async fn list_roles() -> HttpResponse {
+    let roles = vec![
+        "NURSE",
+        "PHARMACIST",
+        "IT",
+        "ADMIN",
+        "COMMONER",
+    ];
+    HttpResponse::Ok().json(roles)
+}
+
 pub fn init(config: &mut web::ServiceConfig) {
-	config.service(web::scope("/user").service(register_employee).service(register_patient).service(login).service(info));
+	config.service(web::scope("/user").service(register_employee).service(register_patient).service(login).service(info).service(list_roles));
 }
