@@ -73,6 +73,7 @@ async fn main() -> std::io::Result<()> {
 			.configure(routes::user::init)
 			.configure(routes::status::init)
 			.configure(routes::patient_report::init)
+			.configure(routes::transaction::init)
 	})
 	.bind("0.0.0.0:3000")?
 	.run()

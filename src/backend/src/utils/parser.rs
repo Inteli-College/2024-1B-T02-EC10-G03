@@ -35,3 +35,11 @@ pub fn fetch_report_status(status: String) -> Option<ReportStatus> {
 		_ => None,
 	}
 }
+
+pub fn fetch_transaction_type(transaction_type: String) -> Option<TransactionType> {
+	match transaction_type.as_str() {
+		"IN" => Some(TransactionType::In),
+		"OUT" => Some(TransactionType::Out),
+		_ => None,
+	}
+}
