@@ -13,7 +13,7 @@ struct UpdatePatientReportStatusInput {
 struct CreatePatientReportInput {
 	patient_uuid: String,
 	transaction_uuid: String,
-	report_type: String,
+	r#type: String,
 	observation: String,
 }
 
@@ -55,11 +55,11 @@ pub async fn create_patient_report(
 	let app_state = state.read().await;
 	let repository = &app_state.repositories.patient_report;
 
-	let report_type = fetch_patient_report_type(input.report_type.clone())
-		.ok_or_else(|| HttpError::bad_request("Invalid report type value"))?;
+	let r#type =
+		fetch_patient_report_type(input.r#type.clone()).ok_or_else(|| HttpError::bad_request("Invalid report type value"))?;
 
 	let new_report = repository
-		.create(input.patient_uuid.clone(), input.transaction_uuid.clone(), report_type.clone(), input.observation.clone())
+		.create(input.patient_uuid.clone(), input.transaction_uuid.clone(), r#type.clone(), input.observation.clone())
 		.await
 		.map_err(|_| HttpError::internal_server_error("Failed to create patient report"))?;
 

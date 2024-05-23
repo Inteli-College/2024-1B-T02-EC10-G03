@@ -21,6 +21,7 @@ mod medicine;
 mod patient;
 mod patient_report;
 mod pyxis;
+mod pyxis_report;
 mod transaction;
 
 pub struct Repositories {
@@ -31,6 +32,7 @@ pub struct Repositories {
 	pub employee: employee::EmployeeRepository,
 	pub patient_report: patient_report::PatientReportRepository,
 	pub transaction: transaction::TransactionRepository,
+	pub pyxis_report: pyxis_report::PyxisReportRepository,
 }
 
 impl Repositories {
@@ -43,6 +45,7 @@ impl Repositories {
 			employee: employee::EmployeeRepository::new(db.clone()),
 			patient_report: patient_report::PatientReportRepository::new(db.clone()),
 			transaction: transaction::TransactionRepository::new(db.clone()),
+			pyxis_report: pyxis_report::PyxisReportRepository::new(db.clone()),
 		}
 	}
 }

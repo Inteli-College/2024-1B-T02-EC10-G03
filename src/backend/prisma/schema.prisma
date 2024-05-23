@@ -194,17 +194,18 @@ enum ReportStatus {
 }
 
 model PyxisReport {
-    cuid         String          @id @default(cuid())
-    pyxis        Pyxis           @relation(fields: [pyxisUuid], references: [uuid])
-    pyxisUuid    String
-    employee     Employee        @relation(fields: [employeeUuid], references: [uuid])
-    employeeUuid String
-    medicine     Medicine        @relation(fields: [medicineId], references: [id])
-    medicineId   String
-    type         PyxisReportType
-    reportStatus ReportStatus    @default(SENT)
-    observation  String
-    urgency      Boolean
+    cuid           String          @id @default(cuid())
+    pyxis          Pyxis           @relation(fields: [pyxisUuid], references: [uuid])
+    pyxisUuid      String
+    employee       Employee        @relation(fields: [employeeUuid], references: [uuid])
+    employeeUuid   String
+    medicine       Medicine        @relation(fields: [medicineId], references: [id])
+    medicineId     String
+    type           PyxisReportType
+    status         ReportStatus    @default(SENT)
+    additionalInfo Json            @default("{}")
+    observation    String
+    urgency        Boolean
 
     @@index([pyxisUuid])
 }

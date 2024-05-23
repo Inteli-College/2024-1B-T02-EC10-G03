@@ -26,6 +26,16 @@ pub fn fetch_patient_report_type(report_type: String) -> Option<PatientReportTyp
 	}
 }
 
+pub fn fetch_pyxis_report_type(report_type: String) -> Option<PyxisReportType> {
+	match report_type.as_str() {
+		"DATA_INCONSISTENCY" => Some(PyxisReportType::DataInconsistency),
+		"NEEDS_REFILL" => Some(PyxisReportType::NeedsRefill),
+		"TECHNICAL_ISSUE" => Some(PyxisReportType::TechnicalIssue),
+		"OTHER" => Some(PyxisReportType::Other),
+		_ => None,
+	}
+}
+
 pub fn fetch_report_status(status: String) -> Option<ReportStatus> {
 	match status.as_str() {
 		"SENT" => Some(ReportStatus::Sent),
