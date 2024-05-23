@@ -73,7 +73,7 @@ class ClientAPI {
 	}
 
 	pyxis = {
-		getAll: async () => this.get<Pyxis[]>('pyxis'),
+		getAll: async () => this.get<Pyxis[]>('pyxis/'),
 		create: async (data: { floor: number; block: string }) => this.post<Pyxis>('pyxis/', data),
 		getSpecific: async (id: string) => this.get<Pyxis>(`pyxis/${id}`),
 		deleteSpecific: async (id: string) => this.delete<Pyxis>(`pyxis/${id}`),
@@ -87,7 +87,7 @@ class ClientAPI {
 	};
 
 	medicine = {
-		getAll: async () => this.get<Medicine[]>('medicine'),
+		getAll: async () => this.get<Medicine[]>('medicine/'),
 		getSpecific: async (id: string) => this.get<Medicine>(`medicine/${id}`),
 		create: async (data: { names: string[]; id: string }) => this.post<Medicine>('medicine', data),
 		delete: async (id: string) => this.delete<string>(`medicine/${id}`),
@@ -102,7 +102,7 @@ class ClientAPI {
 	};
 
 	pyxis_report = {
-		getAll: async () => this.get<{ pyxis: Pyxis; medicines: PyxisReport[] }[]>('pyxis_report'),
+		getAll: async () => this.get<{ pyxis: Pyxis; medicines: PyxisReport[] }[]>('pyxis_report/'),
 		getSpecific: async (cuid: string) => this.get<PyxisReport>(`pyxis_report/${cuid}`),
 		create: async (data: { type: PyxisReportType; employee_uuid: string; medicine_id: string; pyxis_id: string; observation: string; urgency: boolean }) =>
 			this.post<PyxisReport>('pyxis_report', data),
@@ -110,14 +110,14 @@ class ClientAPI {
 	};
 
 	patient_report = {
-		getAll: async () => this.get<PatientReport[]>('patient_report'),
+		getAll: async () => this.get<PatientReport[]>('patient_report/'),
 		getSpecific: async (cuid: string) => this.get<PatientReport>(`patient_report/${cuid}`),
 		create: async (data: { type: PyxisReportType; patient_uuid: string; transaction_uuid: string; observation: string }) => this.post<PatientReport>('patient_report', data),
 		updateStatus: async (cuid: string, status: ReportStatus) => this.put<PatientReport>(`patient_report/${cuid}`, { status }),
 	};
 
 	transactions = {
-		getAll: async () => this.get<Transaction[]>('transaction'),
+		getAll: async () => this.get<Transaction[]>('transaction/'),
 		getSpecific: async (cuid: string) => this.get<Transaction>(`transaction/${cuid}`),
 		create: async (data: { type: TransactionType; employee_uuid: string; patient_uuid: string; medicine_id: string; pyxis_id: string; quantity: number }) =>
 			this.post<Transaction>('transaction', data),
