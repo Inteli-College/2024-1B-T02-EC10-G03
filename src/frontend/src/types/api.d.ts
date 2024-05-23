@@ -63,6 +63,8 @@ interface Patient {
 	createdAt: Date;
 	updatedAt: Date;
 	deletedAt?: Date;
+	Transaction: Transaction[];
+	PatientReport: PatientReport[];
 }
 
 interface Employee {
@@ -73,34 +75,50 @@ interface Employee {
 	createdAt: Date;
 	updatedAt: Date;
 	deletedAt?: Date;
+	Transaction: Transaction[];
+	OverriddenTransaction: OverriddenTransaction[];
+	PyxisReport: PyxisReport[];
 }
 
 interface MedicineName {
 	name: string;
 	createdAt: Date;
+	Medicine: Medicine[];
 }
 
 interface Medicine {
 	id: string;
-	MedicineNames: MedicineName[];
 	createdAt: Date;
 	updatedAt: Date;
+	Transaction: Transaction[];
+	Inventory: Inventory[];
+	MedicineNames: MedicineName[];
+	PyxisReport: PyxisReport[];
 }
 
 interface Transaction {
 	uuid: string;
 	type: TransactionType;
+	employee: Employee;
 	employeeUuid: string;
+	patient: Patient;
 	patientUuid: string;
+	medicine: Medicine;
 	medicineId: string;
+	pyxis: Pyxis;
+	pyxisUuid: string;
 	quantity: number;
-	validationUuid: string;
+	validation?: Validation;
+	validationUuid?: string;
 	createdAt: Date;
+	PatientReport: PatientReport[];
 }
 
 interface OverriddenTransaction {
 	uuid: string;
+	employee: Employee;
 	employeeUuid: string;
+	validation: Validation;
 	validationUuid: string;
 	overrideReason: string;
 	createdAt: Date;
@@ -114,6 +132,8 @@ interface Validation {
 	patientAcceptance: boolean;
 	createdAt: Date;
 	status: ValidationStatus;
+	Transaction: Transaction[];
+	OverriddenTransaction: OverriddenTransaction[];
 }
 
 interface Pyxis {
@@ -122,11 +142,16 @@ interface Pyxis {
 	block: string;
 	extra_data: any;
 	createdAt: Date;
+	Inventory: Inventory[];
+	PyxisReport: PyxisReport[];
+	Transaction: Transaction[];
 }
 
 interface Inventory {
-	pyxisUuid: string;
+	medicine: Medicine;
 	medicineId: string;
+	pyxis: Pyxis;
+	pyxisUuid: string;
 	quantity: number;
 	createdAt: Date;
 	updatedAt: Date;
@@ -142,17 +167,24 @@ interface Log {
 
 interface PyxisReport {
 	cuid: string;
+	pyxis: Pyxis;
 	pyxisUuid: string;
+	employee: Employee;
 	employeeUuid: string;
+	medicine: Medicine;
 	medicineId: string;
 	type: PyxisReportType;
+	status: ReportStatus;
+	additionalInfo: any;
 	observation: string;
 	urgency: boolean;
 }
 
 interface PatientReport {
 	cuid: string;
+	patient: Patient;
 	patientUuid: string;
+	transaction: Transaction;
 	transactionUuid: string;
 	status: ReportStatus;
 	type: PatientReportType;
