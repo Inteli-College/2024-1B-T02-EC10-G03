@@ -206,6 +206,7 @@ model PyxisReport {
     additionalInfo Json            @default("{}")
     observation    String
     urgency        Boolean
+    createAt       DateTime        @default(now())
 
     @@index([pyxisUuid])
 }
@@ -225,6 +226,7 @@ model PatientReport {
     status          ReportStatus      @default(SENT)
     type            PatientReportType
     observation     String
+    createAt        DateTime          @default(now())
 
     @@index([patientUuid])
 }
