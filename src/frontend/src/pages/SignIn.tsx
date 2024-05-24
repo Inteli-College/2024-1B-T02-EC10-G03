@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { CommonStyles } from '@styles/SignInSignUp/CommonStyles';
 import InputField from '@components/SignInSignUp/InputField'; // Assumindo que InputField é um componente customizado
+import ClientAPI from '@api/client';
+import { Employee } from 'types/api';
 
 export default function SignInPage({ navigation }) {
 	const [email, setEmail] = useState('');
@@ -13,41 +15,24 @@ export default function SignInPage({ navigation }) {
 	};
 
 	const handleLoginPress = async () => {
-		if (!email || !password) {
-			Alert.alert('Erro', 'Por favor, preencha todos os campos');
-			return;
-		}
+		 if (email === '' || password === '') {
+		   Alert.alert('Erro', 'Por favor, preencha todos os campos');
+		   return;
+		 }
 
 		try {
-			const response = await fetch('http://localhost:8000/login', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					email,
-					password,
-				}),
+			const response = await ClientAPI.user.login({
+				email: email,
+				password: password,
 			});
 
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.message || 'Erro desconhecido');
-			}
-
-			const data = await response.json();
-			if (data) {
-				// Salve os dados do usuário no armazenamento local ou em uma biblioteca de gerenciamento de estado (por exemplo, Redux)
+			if (response.status === 200 || response.status === 201) {
 				navigation.navigate('QRScanner');
 			} else {
 				Alert.alert('Login falhou', 'Email ou senha inválidos');
 			}
-		} catch (error) {
-			if (error instanceof Error) {
-				Alert.alert('Login falhou', error.message);
-			} else {
-				Alert.alert('Login falhou', 'Erro desconhecido');
-			}
+		} catch (error: any) {
+			Alert.alert('Login falhou', error.response?.data?.message || 'Erro desconhecido');
 		}
 	};
 
@@ -56,27 +41,19 @@ export default function SignInPage({ navigation }) {
 			<View style={CommonStyles.header}>
 				<Text style={CommonStyles.headerText}>Log In</Text>
 			</View>
-			{/* Mantém o InputField original e adiciona TextInput para capturar valores */}
 			<View>
-				<InputField placeholder="Email" />
-				<TextInput
+				<InputField
 					placeholder="Email"
 					value={email}
-					onChangeText={setEmail}
-					style={{ display: 'none' }}
+					onChangeText={setEmail} // Corrigido: Apenas passe a função diretamente
 				/>
 				<InputField
 					placeholder="Password"
 					secureTextEntry={!showPassword}
+					value={password}
+					onChangeText={setPassword} // Corrigido: Apenas passe a função diretamente
 					onToggleShowPassword={() => setShowPassword(!showPassword)}
 					showPassword={showPassword}
-				/>
-				<TextInput
-					placeholder="Password"
-					value={password}
-					onChangeText={setPassword}
-					secureTextEntry={!showPassword}
-					style={{ display: 'none' }}
 				/>
 			</View>
 			<View style={CommonStyles.footer}>

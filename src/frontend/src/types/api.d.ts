@@ -178,6 +178,7 @@ interface PyxisReport {
 	additionalInfo: any;
 	observation: string;
 	urgency: boolean;
+	createdAt: Date;
 }
 
 interface PatientReport {
@@ -189,6 +190,7 @@ interface PatientReport {
 	status: ReportStatus;
 	type: PatientReportType;
 	observation: string;
+	createdAt: Date;
 }
 
 export type {

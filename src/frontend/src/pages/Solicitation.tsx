@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FooterMenu from '@components/FooterMenu/FooterMenu';
+import ClientAPI from '@api/client';
 
 interface Status {
 	status: string;
@@ -24,32 +25,85 @@ interface Solicitation {
 
 export default function SolicitationPage({ navigation }: { navigation: any }) {
 	const [solicitation, setSolicitation] = useState<Solicitation | null>(null);
+	const [medicinesList, setMedicinesList] = useState<any[]>([]);
+	const [finalReport, setFinalReport] = useState<any>(null);
+	const [user, setUser] = useState<any>(null);
+
+	const handleGetReports = async () => {
+		try {
+			const userInfo = await ClientAPI.user.getInfo();
+			setUser(userInfo);
+
+			const reports = await ClientAPI.pyxis_report.getAll();
+			const lastReport = reports.data[reports.data.length - 1];
+			setFinalReport(lastReport);
+
+			const medicines = await ClientAPI.medicine.getAll();
+			setMedicinesList(medicines.data);
+
+			const mockData = formatReportData(lastReport);
+			setSolicitation(mockData);
+		} catch (error) {
+			console.error('Error fetching reports or medicines:', error);
+		}
+	};
 
 	useEffect(() => {
-		const mockData: Solicitation = {
-			date: '20/10/2014',
-			time: '14:54',
-			statusdict: [
-				{ status: 'Em andamento', data: '2024-05-02' },
-				{ status: 'Em andamento', data: '2024-05-02' },
-				{ status: 'Em andamento', data: '2024-05-02' },
-				{ status: 'Em andamento', data: '2024-05-02' },
-			],
-			medicacoes: [
-				{ nome: 'Ibuprofeno', quantidade: 2 },
-				{ nome: 'Ibuprofeno Pílula', quantidade: 2 },
-			],
-			inconsistencias: ['Nenhuma'],
-			responsavel: 'Rodrigo Faro',
+		handleGetReports();
+	}, []);
+
+	const getMedicineNames = (medicineId: string) => {
+		const medicine = medicinesList.find(m => m.id === medicineId);
+		return medicine ? medicine.MedicineNames.map(mn => mn.name) : [];
+	};
+
+	const formatReportData = (report: any) => {
+		const medicineNames = getMedicineNames(report.medicineId);
+		const statusMapping = {
+			"SENT": "Enviada",
+			"RECEIVED": "Recebida",
+			"PENDING": "Em andamento",
+			"FINISHED": "Finalizada"
 		};
 
-		setSolicitation(mockData);
-	}, []);
+		return {
+			date: new Date().toLocaleDateString(), // Usar a data atual
+			time: new Date().toLocaleTimeString(), // Usar a hora atual
+			statusdict: [
+				{ status: statusMapping["SENT"], data: '2024-05-02' },
+				{ status: statusMapping["RECEIVED"], data: '2024-05-02' },
+				{ status: statusMapping["PENDING"], data: '2024-05-02' },
+				{ status: statusMapping["FINISHED"], data: '2024-05-02' }
+			],
+			medicacoes: medicineNames.map(name => ({ nome: name, quantidade: 1 })), // Assumindo quantidade = 1
+			inconsistencias: [report.type.replace('_', ' ')],
+			responsavel: user?.data.name || "Desconhecido"
+		};
+	};
+
+	const getIconColor = (index: number) => {
+		if (!finalReport) return 'gray';
+
+		const statusOrder = ["SENT", "RECEIVED", "PENDING", "FINISHED"];
+		const reportStatusIndex = statusOrder.indexOf(finalReport.status);
+
+		return index <= reportStatusIndex ? '#006400' : '#DAA520';
+	};
+
+	const getIconName = (index: number) => {
+		if (!finalReport) return 'checkmark-circle';
+
+		const statusOrder = ["SENT", "RECEIVED", "PENDING", "FINISHED"];
+		const reportStatusIndex = statusOrder.indexOf(finalReport.status);
+
+		return index <= reportStatusIndex ? 'checkmark-circle' : 'close-circle';
+	};
 
 	const renderStatus = (status: Status, index: number) => (
 		<View key={index} style={styles.statusItem}>
 			<Text style={styles.statusText}>{status.status}</Text>
 			<Text style={styles.datestatusText}>{status.data}</Text>
+			<Ionicons name={getIconName(index)} size={24} color={getIconColor(index)} />
 		</View>
 	);
 
@@ -65,7 +119,7 @@ export default function SolicitationPage({ navigation }: { navigation: any }) {
 		<>
 			<View style={styles.container}>
 				<View style={styles.header}>
-					<TouchableOpacity onPress={() => Alert.alert('Back pressed')} style={styles.backButton}>
+					<TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
 						<Ionicons name="arrow-back" size={24} color="black" />
 					</TouchableOpacity>
 					<Text style={styles.headerTitle}>Pixis 2</Text>
@@ -97,7 +151,7 @@ export default function SolicitationPage({ navigation }: { navigation: any }) {
 							</Text>
 
 							<Text style={styles.content}>
-								Responsável: <Text style={styles.informationData}> {solicitation.responsavel} </Text>
+								Responsável pelo Pedido: <Text style={styles.informationData}>{solicitation.responsavel}</Text>
 							</Text>
 						</>
 					)}
@@ -149,6 +203,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		padding: 8,
 		paddingTop: 10,
+		marginRight: 8,
+		marginLeft: 8
 	},
 	medicationItem: {
 		marginTop: 15,

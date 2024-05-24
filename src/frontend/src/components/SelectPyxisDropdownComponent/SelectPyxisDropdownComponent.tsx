@@ -1,21 +1,39 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
+import ClientAPI from '@api/client';
+import { Pyxis } from 'types/api';
 
-const DropdownComponent = () => {
-	const [selectedEquipment, setSelectedEquipment] = useState(null);
+const usePyxis = () => {
+	const [pyxis, setPyxis] = React.useState([]);
+
+	React.useEffect(() => {
+		ClientAPI.pyxis.getAll().then((response) => {
+			const pyxisData = response.data.map((pyxis: Pyxis) => {
+				const id = `${pyxis.floor}${pyxis.block}`;
+				return {
+					label: id,
+					value: id,
+					key: id,
+				};
+			});
+			setPyxis(pyxisData);
+		});
+	}, []);
+
+	return { pyxis };
+}
+
+const DropdownComponent = ({ selectedEquipment, setSelectedEquipment }) => {
+	const { pyxis } = usePyxis();
 
 	return (
 		<View style={styles.container}>
 			<RNPickerSelect
 				onValueChange={(value) => setSelectedEquipment(value)}
-				items={[
-					{ label: 'Equipment A', value: 'equipment_a' },
-					{ label: 'Equipment B', value: 'equipment_b' },
-					{ label: 'Equipment C', value: 'equipment_c' },
-				]}
+				items={pyxis}
 				placeholder={{
-					label: 'Selecione o Equipamento',
+					label: 'Selecione o Pyxis',
 					value: null,
 					color: '#888888',
 				}}
