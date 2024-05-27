@@ -30,6 +30,6 @@ class CameraService:
         self.camera.release()
         self.out.release()
         cv.destroyAllWindows()
-    
+
     def upload_file_to_bucket(self):
         pass
