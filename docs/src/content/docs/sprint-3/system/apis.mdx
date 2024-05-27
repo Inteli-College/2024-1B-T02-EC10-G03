@@ -1,0 +1,110 @@
+---
+title: Sistema de Integração
+sidebar:
+    label: Sistema do Backend
+    order: 3
+description: Sistema do Backend
+---
+
+## Estruturas e Classes
+Essa documentação fornece uma visão geral sucinta das funcionalidades da classe `ClientAPI`, descrevendo suas estruturas, métodos de requisição HTTP e roteamentos específicos.
+
+
+### APIResponse
+- Descrição: Classe que encapsula a resposta da API.
+- Atributos:
+    - status: Status da resposta HTTP.
+    - data: Dados retornados pela API.
+
+### ClientAPI
+- Descrição: Classe principal que gerencia a URL base da API e define métodos para realizar requisições HTTP.
+- Atributos:
+    - base_url: URL base da API.
+
+##### Construtor
+- Parâmetros: 
+    - base_url (string): A URL base da API.
+- Funcionalidade:
+    1. Ajusta a URL base se necessário.
+    2. Valida a URL base através de uma requisição.
+
+##### Métodos de Requisição HTTP
+- GET
+    - Descrição: Realiza uma requisição GET.
+    - Parâmetros: 
+        - path (string): O caminho da URL.
+    - Retorno: APIResponse - A resposta da API.
+- POST
+    - Descrição: Realiza uma requisição POST.
+    - Parâmetros: 
+        - path (string): O caminho da URL.
+        - data (object): Os dados a serem enviados.
+    - Retorno: APIResponse - A resposta da API.
+- PUT
+    - Descrição: Realiza uma requisição PUT.
+    - Parâmetros: 
+        - path (string): O caminho da URL.
+        - data (object): Os dados a serem enviados.
+    - Retorno: APIResponse - A resposta da API.
+- DELETE
+    - Descrição: Realiza uma requisição DELETE.
+    - Parâmetros: 
+        - path (string): O caminho da URL.
+    - Retorno: APIResponse - A resposta da API.
+
+##### Roteamento e Métodos Específicos
+**Pyxis**
+- Descrição: Métodos para gerenciar Pyxis.
+- Métodos:
+    - getAll(): Obtém todos os registros de Pyxis.
+    - create(data): Cria um novo registro de Pyxis.
+    - getSpecific(id): Obtém um registro específico de Pyxis.
+    - deleteSpecific(id): Deleta um registro específico de Pyxis.
+
+**Usuário**
+- Descrição: Métodos para gerenciar usuários.
+- Métodos:
+    - registerPatient(data): Registra um novo paciente.
+    - registerEmployee(data): Registra um novo empregado.
+    - login(data): Realiza o login de um usuário.
+    - getInfo(): Obtém informações do usuário autenticado.
+
+**Medicamentos**
+- Descrição: Métodos para gerenciar medicamentos.
+- Métodos:
+    - getAll(): Obtém todos os medicamentos.
+    - getSpecific(id): Obtém um medicamento específico.
+    - create(data): Cria um novo medicamento.
+    - delete(id): Deleta um medicamento específico.
+
+**Inventário**
+- Descrição: Métodos para gerenciar o inventário de medicamentos em Pyxis.
+- Métodos:
+    - getAllMedicinesOfPyxis(pyxisId): Obtém todos os medicamentos de um Pyxis específico.
+    - getSpecificMedicineOfPyxis(pyxisId, medicineId): Obtém um medicamento específico de um Pyxis.
+    - addMedicine(pyxisId, medicineId, data): Adiciona uma quantidade de medicamento a um Pyxis.
+    - removeMedicine(pyxisId, medicineId, data): Remove uma quantidade de medicamento de um Pyxis.
+    - deleteMedicine(pyxisId, medicineId): Deleta um medicamento específico de um Pyxis.
+
+**Relatórios de Pyxis**
+- Descrição: Métodos para gerenciar relatórios de Pyxis.
+- Métodos:
+    - getAll(): Obtém todos os relatórios de Pyxis.
+    - getSpecific(cuid): Obtém um relatório específico de Pyxis.
+    - create(data): Cria um novo relatório de Pyxis.
+    - updateStatus(cuid, status): Atualiza o status de um relatório de Pyxis.
+
+**Relatórios de Pacientes**
+- Descrição: Métodos para gerenciar relatórios de pacientes.
+- Métodos:
+    - getAll(): Obtém todos os relatórios de pacientes.
+    - getSpecific(cuid): Obtém um relatório específico de paciente.
+    - create(data): Cria um novo relatório de paciente.
+    - updateStatus(cuid, status): Atualiza o status de um relatório de paciente.
+
+**Transações**
+- Descrição: Métodos para gerenciar transações.
+- Métodos:
+    - getAll(): Obtém todas as transações.
+    - getSpecific(cuid): Obtém uma transação específica.
+    - create(data): Cria uma nova transação.
