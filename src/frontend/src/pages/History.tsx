@@ -23,7 +23,6 @@ const getResponse = async () => {
         if (!pyxis_unique) return;
         report.pyxis = pyxis_unique;
     });
-
     return pyxis_reports.data;
 }
 
@@ -67,6 +66,7 @@ const report_type_to_string = (type: PyxisReportType) => {
             return 'Outro';
     }
 }
+
 
 const ReportItem = ({ report }: { report: PyxisReport }) => (
     <View style={styles.reportItem}>
@@ -181,6 +181,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     columnWrapper: {
+		height: 200,
         justifyContent: 'space-between',
     },
     historyList: {
