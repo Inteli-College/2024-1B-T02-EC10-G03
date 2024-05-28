@@ -50,7 +50,9 @@ export default function QRScannerPage({ navigation }: { navigation: any }) {
 	return (
 		<View style={styles.container}>
 			<CameraView onBarcodeScanned={scanned ? undefined : handleBarCodeScanned} style={styles.camera}>
-				{scanned && <Button title="Escanear novamente" onPress={() => setScanned(false)} />}
+				{scanned ?
+				<Text style={styles.button}>QRCode escaneado</Text>
+				: <Text style={styles.button}>Escaneie o QRCode</Text>}
 			</CameraView>
 			<FooterMenu />
 		</View>
@@ -67,4 +69,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		...StyleSheet.absoluteFillObject,
 	},
+	button: {
+		margin: 10,
+	}
 });

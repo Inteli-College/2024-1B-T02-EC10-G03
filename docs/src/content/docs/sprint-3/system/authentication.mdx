@@ -1,0 +1,214 @@
+---
+title: Sistema de Autenticação
+sidebar:
+    label: Sistema de Autenticação
+    order: 4
+description: Sistema de Autenticação
+---
+
+# Sistema de Cadastro e Validação de Usuários
+
+## Cadastro de Usuários
+
+### Registro de Empregado
+
+- **Endpoint:** `/user/register/employee`
+- **Método:** `POST`
+- **Descrição:** Registra um novo empregado no sistema.
+
+#### Processo:
+1. O cliente envia uma requisição `POST` com os dados do novo empregado:
+    ```json
+    {
+      "name": "string",
+      "email": "string",
+      "password": "string",
+      "role": "string"
+    }
+    ```
+2. O servidor lê o estado da aplicação (`AppStateType`) de forma assíncrona.
+3. A função `fetch_employee_role` verifica se o papel (`role`) fornecido é válido.
+4. Se o papel for inválido, o servidor retorna um erro `400 Bad Request`:
+    ```json
+    {
+      "error": "Invalid role"
+    }
+    ```
+5. O repositório de empregados (`app_state.repositories.employee`) cria um novo registro de empregado com os dados fornecidos.
+6. Se a criação falhar, o servidor retorna um erro `500 Internal Server Error`:
+    ```json
+    {
+      "error": "Failed to create employee"
+    }
+    ```
+7. O servidor remove o campo `password` da resposta por questões de segurança.
+8. O servidor retorna uma resposta `201 Created` com os dados do empregado registrado (sem a senha):
+    ```json
+    {
+      "uuid": "string",
+      "name": "string",
+      "email": "string",
+      "role": "string"
+    }
+    ```
+
+### Registro de Paciente
+
+- **Endpoint:** `/user/register/patient`
+- **Método:** `POST`
+- **Descrição:** Registra um novo paciente no sistema.
+
+#### Processo:
+1. O cliente envia uma requisição `POST` com os dados do novo paciente:
+    ```json
+    {
+      "name": "string",
+      "email": "string",
+      "password": "string"
+    }
+    ```
+2. O servidor lê o estado da aplicação (`AppStateType`) de forma assíncrona.
+3. O repositório de pacientes (`app_state.repositories.patient`) cria um novo registro de paciente com os dados fornecidos.
+4. Se a criação falhar, o servidor retorna um erro `500 Internal Server Error`:
+    ```json
+    {
+      "error": "Failed to create patient"
+    }
+    ```
+5. O servidor remove o campo `password` da resposta por questões de segurança.
+6. O servidor retorna uma resposta `201 Created` com os dados do paciente registrado (sem a senha):
+    ```json
+    {
+      "uuid": "string",
+      "name": "string",
+      "email": "string"
+    }
+    ```
+
+## Validação de Usuários (Login)
+
+### Login de Usuário
+
+- **Endpoint:** `/user/login`
+- **Método:** `POST`
+- **Descrição:** Autentica um usuário (empregado ou paciente) no sistema.
+
+#### Processo:
+1. O cliente envia uma requisição `POST` com as credenciais do usuário:
+    ```json
+    {
+      "email": "string",
+      "password": "string"
+    }
+    ```
+2. O servidor lê o estado da aplicação (`AppStateType`) de forma assíncrona.
+3. O servidor tenta encontrar um empregado com as credenciais fornecidas (`email` e `password`).
+    - Se encontrar, converte os dados do empregado para JSON.
+    - Se a conversão falhar, o servidor retorna um erro `500 Internal Server Error`:
+        ```json
+        {
+          "error": "Failed to serialize employee data"
+        }
+        ```
+4. Se não encontrar um empregado, o servidor tenta encontrar um paciente com as mesmas credenciais.
+    - Se encontrar, converte os dados do paciente para JSON.
+    - Se a conversão falhar, o servidor retorna um erro `500 Internal Server Error`:
+        ```json
+        {
+          "error": "Failed to serialize patient data"
+        }
+        ```
+5. Se não encontrar nenhum usuário com as credenciais fornecidas, o servidor retorna um erro `401 Unauthorized`:
+    ```json
+    {
+      "error": "Invalid credentials"
+    }
+    ```
+6. O servidor armazena o UUID do usuário autenticado na sessão utilizando `Redis`.
+7. O servidor remove o campo `password` da resposta por questões de segurança.
+8. O servidor retorna uma resposta `200 OK` com os dados do usuário autenticado (sem a senha):
+    ```json
+    {
+      "uuid": "string",
+      "name": "string",
+      "email": "string",
+      "role": "string" (se empregado)
+    }
+    ```
+
+## Recuperação de Informações do Usuário
+
+### Informação do Usuário Autenticado
+
+- **Endpoint:** `/user/info`
+- **Método:** `GET`
+- **Descrição:** Retorna informações sobre o usuário autenticado.
+
+#### Processo:
+1. O cliente envia uma requisição `GET` com as informações da sessão.
+2. O servidor lê o estado da aplicação (`AppStateType`) de forma assíncrona.
+3. O servidor obtém o UUID do usuário autenticado a partir das informações da sessão.
+4. O servidor tenta encontrar um empregado ou paciente correspondente ao UUID.
+    - Se encontrar, converte os dados para JSON.
+    - Se a conversão falhar, o servidor retorna um erro `500 Internal Server Error`:
+        ```json
+        {
+          "error": "Failed to serialize employee data"
+        }
+        ```
+5. Se não encontrar nenhum usuário com o UUID fornecido, o servidor retorna um erro `401 Unauthorized`:
+    ```json
+    {
+      "error": "Invalid credentials"
+    }
+    ```
+6. O servidor remove o campo `password` da resposta por questões de segurança.
+7. O servidor retorna uma resposta `200 OK` com os dados do usuário autenticado (sem a senha):
+    ```json
+    {
+      "uuid": "string",
+      "name": "string",
+      "email": "string",
+      "role": "string" (se empregado)
+    }
+    ```
+
+## Listagem de Papéis
+
+### Listagem de Papéis de Empregados
+
+- **Endpoint:** `/user/roles`
+- **Método:** `GET`
+- **Descrição:** Retorna uma lista de papéis de empregados.
+
+#### Processo:
+1. O cliente envia uma requisição `GET`.
+2. O servidor cria uma lista de papéis possíveis:
+    ```json
+    [
+      "Nurse",
+      "Pharmacist",
+      "It",
+      "Admin",
+      "Commoner"
+    ]
+    ```
+3. O servidor retorna uma resposta `200 OK` com a lista de papéis em formato JSON.
+
+## Gerenciamento de Sessões
+
+### Armazenamento de Sessões
+- As sessões são gerenciadas usando o Redis.
+- Ao fazer login, o servidor armazena o UUID do usuário na sessão do Redis.
+- As sessões são identificadas por um ID de sessão único.
+
+## Segurança
+
+### Remoção de Senhas
+- As respostas JSON nunca incluem o campo `password` para evitar exposição de dados sensíveis.
+
+### Verificação de Papéis
+- A função `fetch_employee_role` é usada para garantir que apenas papéis válidos sejam atribuídos a empregados.
+
+### Autorização
+- As operações sensíveis, como obtenção de informações do usuário autenticado, verificam a sessão atual para garantir que o usuário esteja autenticado.

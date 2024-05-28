@@ -11,10 +11,10 @@ const FooterMenu = () => {
 
 	return (
 		<View style={styles.bottomMenu}>
-			<TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('Solicitation')} accessibilityLabel="Go to Solicitation">
+			<TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('History')} accessibilityLabel="Go to Solicitation">
 				<View style={styles.circle} />
 			</TouchableOpacity>
-			<TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('History')} accessibilityLabel="Go to History">
+			<TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('Solicitation')} accessibilityLabel="Go to History">
 				<View style={styles.circle} />
 			</TouchableOpacity>
 			<View style={styles.centerButtonContainer}>

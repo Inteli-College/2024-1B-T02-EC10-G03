@@ -83,8 +83,8 @@ model Transaction {
     pyxis          Pyxis           @relation(fields: [pyxisUuid], references: [uuid])
     pyxisUuid      String
     quantity       Int
-    validation     Validation      @relation(fields: [validationUuid], references: [uuid])
-    validationUuid String
+    validation     Validation?     @relation(fields: [validationUuid], references: [uuid])
+    validationUuid String?
     createdAt      DateTime        @default(now())
     PatientReport  PatientReport[]
 
@@ -194,16 +194,19 @@ enum ReportStatus {
 }
 
 model PyxisReport {
-    cuid         String          @id @default(cuid())
-    pyxis        Pyxis           @relation(fields: [pyxisUuid], references: [uuid])
-    pyxisUuid    String
-    employee     Employee        @relation(fields: [employeeUuid], references: [uuid])
-    employeeUuid String
-    medicine     Medicine        @relation(fields: [medicineId], references: [id])
-    medicineId   String
-    type         PyxisReportType
-    observation  String
-    urgency      Boolean
+    cuid           String          @id @default(cuid())
+    pyxis          Pyxis           @relation(fields: [pyxisUuid], references: [uuid])
+    pyxisUuid      String
+    employee       Employee        @relation(fields: [employeeUuid], references: [uuid])
+    employeeUuid   String
+    medicine       Medicine        @relation(fields: [medicineId], references: [id])
+    medicineId     String
+    type           PyxisReportType
+    status         ReportStatus    @default(SENT)
+    additionalInfo Json            @default("{}")
+    observation    String
+    urgency        Boolean
+    createAt       DateTime        @default(now())
 
     @@index([pyxisUuid])
 }
@@ -220,9 +223,10 @@ model PatientReport {
     patientUuid     String
     transaction     Transaction       @relation(fields: [transactionUuid], references: [uuid])
     transactionUuid String
-    status          ReportStatus
+    status          ReportStatus      @default(SENT)
     type            PatientReportType
     observation     String
+    createAt        DateTime          @default(now())
 
     @@index([patientUuid])
 }

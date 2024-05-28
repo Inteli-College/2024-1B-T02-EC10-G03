@@ -20,3 +20,4 @@ db.rs
 
 # Cache
 .cache
+src/middlewares

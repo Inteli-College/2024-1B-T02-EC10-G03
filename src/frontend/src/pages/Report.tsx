@@ -3,6 +3,7 @@ import { View, TextInput, StyleSheet, Text, TouchableOpacity, Alert } from 'reac
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import ClientAPI from '@api/client';
+import { PyxisReportType } from 'types/api';
 
 interface InventoryData {
 	medicine_id: string;
@@ -12,10 +13,9 @@ interface InventoryData {
 
 const useInventoryData = (pyxis_id: string) => {
 	const [inventoryData, setInventoryData] = useState<InventoryData[]>([]);
-
 	const fetchInventoryData = useCallback(async () => {
 		try {
-			const inventoryList = (await ClientAPI.inventory.getMedicines(pyxis_id)).data;
+			const inventoryList = (await ClientAPI.inventory.getAllMedicinesOfPyxis(pyxis_id)).data;
 			const updatedInventory = [];
 
 			for (let item of inventoryList) {
@@ -48,6 +48,8 @@ interface FormData {
 }
 
 export default function ReportPage({ route, navigation }: any) {
+	const [medicineSelected, setMedicineSelected] = useState<string | undefined>();
+	const [user, setUser] = useState<any>();
 	const { pyxis_id } = route.params;
 	const inventoryData = useInventoryData(pyxis_id);
 	const [form, setForm] = useState<FormData>({
@@ -60,14 +62,61 @@ export default function ReportPage({ route, navigation }: any) {
 		setForm((prevForm) => ({ ...prevForm, [name]: value }));
 	};
 
+	const setUserActually = async () => {
+		try {
+			const response = await ClientAPI.user.getInfo();
+			setUser(response.data);
+
+		} catch (error: any) {
+			console.error('Failed to fetch user data:', error);
+			Alert.alert('Error', 'Unable to fetch user data.');
+		}
+	}
+
 	const handleSubmit = async () => {
-		Alert.alert('Submit', 'This feature is not implemented yet.');
+		setUserActually()
+		const problem = form.inconsistency
+		const obs = form.observations
+
+		if (!problem || !obs || !medicineSelected) {
+			Alert.alert('Erro ao Enviar o Report', 'Por favor, preencha todos os campos.');
+			return;
+		}
+
+		console.log("pyxid_id: ", pyxis_id)
+		console.log("employee_uuid: ", user.uuid)
+		console.log("medicine_id: ", medicineSelected)
+		console.log("type: ", problem)
+		console.log("observations: ", obs)
+		console.log("urgency: ", false)
+
+		try {
+			console.log("Entrou no try")
+			const response = await ClientAPI.pyxis_report.create({
+				pyxis_id: pyxis_id,
+				employee_uuid: user.uuid,
+				medicine_id: medicineSelected,
+				type: problem as PyxisReportType,
+				observation: obs,
+				urgency: false
+			});
+
+			console.log(response)
+			if (response.status === 200 || response.status === 201) {
+				Alert.alert('Report Enviado com Sucesso');
+				navigation.navigate('History');
+			} else {
+				Alert.alert('Erro ao Enviar o Report', 'Por favor, tente novamente mais tarde.');
+			}
+		} catch (error: any) {
+			Alert.alert('Erro ao Enviar o Report', error.response?.data?.message || 'Por favor, tente novamente mais tarde.');
+		}
 	};
 
 	return (
 		<View style={styles.container}>
 			<Header navigation={navigation} />
-			<Form pyxisId={pyxis_id} inventoryData={inventoryData} form={form} handleInputChange={handleInputChange} handleSubmit={handleSubmit} />
+			<Form pyxisId={pyxis_id} inventoryData={inventoryData} form={form} handleInputChange={handleInputChange} handleSubmit={handleSubmit} setMedicineSelected={setMedicineSelected}/>
 		</View>
 	);
 }
@@ -81,10 +130,11 @@ const Header = ({ navigation }: { navigation: any }) => (
 	</View>
 );
 
-const Form = ({ pyxisId, inventoryData, form, handleInputChange, handleSubmit }: { pyxisId: string; inventoryData: InventoryData[]; form: any; handleInputChange: any; handleSubmit: any }) => {
+const Form = ({ pyxisId, inventoryData, form, handleInputChange, handleSubmit, setMedicineSelected }: { pyxisId: string; inventoryData: InventoryData[]; form: any; handleInputChange: any; handleSubmit: any, setMedicineSelected:any }) => {
 	useEffect(() => {
 		if (inventoryData.length > 0 && !form.selectedMedication) {
 			handleInputChange('selectedMedication', inventoryData[0].medicine_id);
+			setMedicineSelected(inventoryData[0].medicine_id)
 		}
 	}, [inventoryData, form.selectedMedication, handleInputChange]);
 
@@ -117,6 +167,7 @@ const Form = ({ pyxisId, inventoryData, form, handleInputChange, handleSubmit }:
 					/>
 				</>
 			)}
+
 
 			<Text style={styles.label}>Observações/Comentários</Text>
 			<TextInput
@@ -160,7 +211,7 @@ const styles = StyleSheet.create({
 		marginBottom: 2,
 		marginTop: 10,
 		fontWeight: 'bold',
-		fontSize: 13,
+		fontSize: 16,
 		color: 'black',
 	},
 	input: {
@@ -169,6 +220,7 @@ const styles = StyleSheet.create({
 		borderColor: 'white',
 		borderRadius: 13,
 		padding: 5,
+		height: 40,
 		backgroundColor: '#F6F6F6',
 	},
 	multiline: {
@@ -193,6 +245,7 @@ const styles = StyleSheet.create({
 		maxHeight: 150,
 		borderWidth: 1,
 		borderColor: 'white',
+		overflow: 'hidden',
 		borderRadius: 13,
 		backgroundColor: '#F6F6F6',
 	},

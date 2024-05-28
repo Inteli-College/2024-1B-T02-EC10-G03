@@ -1,3 +1,4 @@
+use crate::db::EmployeeRole;
 use crate::{error::HttpError, features, states::app::AppStateType, utils::parser::fetch_employee_role};
 use ntex::web::{self, HttpResponse};
 use redis::AsyncCommands;
@@ -170,6 +171,20 @@ pub async fn info(
 	Ok(HttpResponse::Ok().json(&response))
 }
 
+#[web::get("/roles")]
+pub async fn list_roles() -> HttpResponse {
+	let roles = vec![
+		EmployeeRole::Nurse.to_string(),
+		EmployeeRole::Pharmacist.to_string(),
+		EmployeeRole::It.to_string(),
+		EmployeeRole::Admin.to_string(),
+		EmployeeRole::Commoner.to_string(),
+	];
+	HttpResponse::Ok().json(&roles)
+}
+
 pub fn init(config: &mut web::ServiceConfig) {
-	config.service(web::scope("/user").service(register_employee).service(register_patient).service(login).service(info));
+	config.service(
+		web::scope("/user").service(register_employee).service(register_patient).service(login).service(info).service(list_roles),
+	);
 }

@@ -1,0 +1,73 @@
+---
+title: Desenvolvimento de Interface
+sidebar:
+    label: Desenvolvimento de Interface
+    order: 1
+description: Desenvolvimento de Interface
+---
+
+# Desenvolvimento de Interface
+
+## Introdução
+
+Este documento apresenta o processo de desenvolvimento da interface do sistema, incluindo a definição de componentes, estilos e interações. A interface foi projetada com base nas necessidades dos usuários e nas funcionalidades do sistema, visando proporcionar uma experiência intuitiva e eficiente.
+
+Com base no prototipo ja desenvolvido, durante a Sprint 3 foi implementada na interface o fluxo do técnico de enfermagem, focando nas funcionalidades de registro e acompanhamento de reports. A seguir, são apresentados os principais componentes e estilos utilizados no desenvolvimento da interface.
+
+## Componentes
+
+### Tela inicial
+- **Descrição:** Página inicial do sistema fornecendo as opções de login ou cadastro. 
+
+#### Processo:
+1. O usuário pode optar por fazer login ou se cadastrar no sistema.
+2. Se o usuário clicar em "Login", ele será redirecionado para a tela de login.
+3. Se o usuário clicar em "Cadastrar", ele será redirecionado para a tela de cadastro.
+
+### Tela de Cadastro
+- **Descrição:** Tela de cadastro para registro de novos usuários no sistema.
+
+#### Processo:
+1. O usuário insere os dados solicitados nos campos correspondentes.
+2. O usuário clica no botão "Cadastrar" para criar uma nova conta.
+3. Se os dados estiverem corretos, a conta é criada e o usuário é redirecionado para a tela de login.
+4. Se os dados estiverem incorretos, uma mensagem de erro é exibida.
+
+
+### Tela de Login
+- **Descrição:** Tela de login para acesso ao sistema.
+
+#### Processo:
+1. O usuário insere o e-mail e a senha nos campos correspondentes.
+2. O usuário clica no botão "Login" para acessar o sistema.
+3. Se as credenciais estiverem corretas, o usuário é redirecionado para a página inicial.
+4. Se as credenciais estiverem incorretas, uma mensagem de erro é exibida.
+
+### Tela de Scanner do QRCode
+- **Descrição:** Página para escanear o QRCode da máquina Pyxis para identificação de quais itens existem no equipamento para a abertura do chamado. 
+
+#### Processo:
+1. O usuário clica no botão "Escanear QRCode" para abrir a câmera do dispositivo.
+2. O usuário aponta a câmera para o QRCode da máquina Pyxis.
+3. O sistema identifica o QRCode e exibe a lista de itens disponíveis na máquina.
+4. O usuário é redirecionado para a tela de Report. 
+
+### Tela de Report
+- **Descrição:** Página para registro de um novo report de ocorrência.
+
+#### Processo:
+1. O usuário seleciona o item que deseja reportar.
+2. O usuário seleciona o tipo de ocorrência (Inconsistência, Falha Técnica, Outro).
+3. O usuário insere uma descrição detalhada da ocorrência.
+4. O usuário clica no botão "Enviar" para registrar o report.
+
+### Tela de Acompanhamento de Reports
+- **Descrição:** Página para visualização e acompanhamento dos reports registrados.
+
+#### Processo:
+1. O sistema exibe a lista de reports registrados.
+2. O usuário pode visualizar os detalhes de cada report.
+3. O usuário pode verificar o status do report (Pendente, Em Andamento, Concluído).
+
+## Demonstração do Funcionamento da Interface
+<iframe width="560" height="315" src="https://www.youtube.com/embed/2VXs0Ll96gw?si=fuaCJi9Xr1R89uUu" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>

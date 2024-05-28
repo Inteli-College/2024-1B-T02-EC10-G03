@@ -11,6 +11,8 @@ echo "| Starting docker-desktop service |"
 echo "-----------------------------------\n"
 systemctl --user start docker-desktop
 
+echo "Docker desktop service started"
+
 sleep 5
 
 echo "\n---------------------------------------"
@@ -56,6 +58,15 @@ minikube kubectl -- apply -f postgres-deployment.yaml
 minikube kubectl -- apply -f postgres-service.yaml
 minikube kubectl -- apply -f postgres-pvc.yaml
 
+echo "\n-----------------------------"
+echo "| Starting cache deployment |"
+echo "-----------------------------\n"
+
+sleep 3
+minikube kubectl -- apply -f redis-deployment.yaml
+minikube kubectl -- apply -f redis-service.yaml
+minikube kubectl -- apply -f redis-pvc.yaml
+
 echo "\n-------------------------------"
 echo "| Starting backend deployment |"
 echo "-------------------------------\n"
@@ -71,15 +82,9 @@ sleep 5
 echo "\n---------------------------------------------"
 echo "| Port forwarding to access the application |"
 echo "---------------------------------------------\n"
-minikube service app-service --url > tmp_url.txt &
+echo $(minikube service app-service --url) 
 
-while [ ! -s tmp_url.txt ]; do
-    sleep 1
-done
-
-echo "Service URL:"
-cat tmp_url.txt
-rm tmp_url.txt
+sleep 1
 
 echo "\n---------------------"
 echo "| Calling dashboard |"
