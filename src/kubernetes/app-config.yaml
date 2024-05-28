@@ -4,3 +4,4 @@ metadata:
   name: app-env
 data:
   DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/postgres?schema=public"
+  REDIS_URL: "redis://redis:6379"
