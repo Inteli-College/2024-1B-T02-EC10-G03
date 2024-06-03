@@ -1,0 +1,25 @@
+name: LoadTest API
+on:
+    push:
+        branches: ['main', 'ci-cd/aws']
+        paths:
+            - 'src/load_test/**'
+
+jobs:
+    load_tests:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Run local k6 test
+              uses: grafana/k6-action@v0.3.1
+              with:
+                  filename: ./src/load_test/dist/main.test.js
+                  flags: --out json=summary.json
+              env:
+                  HOSTNAME: ${{ secrets.BASE_URL }}
+
+            - name: Upload k6 results
+              uses: actions/upload-artifact@v4
+              with:
+                  name: k6-results
+                  path: summary.json
