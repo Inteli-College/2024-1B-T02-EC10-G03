@@ -1,19 +1,29 @@
 name: LoadTest API
 on:
     push:
-        branches: ['main', 'ci-cd/aws']
-        paths:
-            - 'src/load_test/**'
+        branches: ['main']
 
 jobs:
     load_tests:
         runs-on: ubuntu-latest
 
         steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+
+            - name: webpack
+              run: |
+                cd load_test
+                npm install
+                npm run bundle
+
             - name: Run local k6 test
               uses: grafana/k6-action@v0.3.1
               with:
-                  filename: ./src/load_test/dist/main.test.js
+                  filename: ./load_test/dist/main.test.js
                   flags: --out json=summary.json
               env:
                   HOSTNAME: ${{ secrets.BASE_URL }}
