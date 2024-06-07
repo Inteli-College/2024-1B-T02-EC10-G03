@@ -14,3 +14,4 @@ PyYAML==6.0.1
 six==1.16.0
 watchdog==4.0.0
 wcwidth==0.2.13
+gradio==4.33.0

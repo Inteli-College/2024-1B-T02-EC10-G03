@@ -1,13 +1,20 @@
 from gpiozero import LED
-from time import sleep
+import gradio as gr
+import time
 
-def main():
-    relay = LED(17)
-    while True:
-        relay.on()
-        sleep(1)
-        relay.off()
-        sleep(1)
+relay = LED(17)
 
-if __name__ == '__main__':
-    main()
+def greet(input):
+
+    relay.toggle()
+
+    return
+
+interface = gr.Interface(
+    fn=greet,
+    title="Greeting",
+    inputs=[gr.Button("Open Pyxis")],
+    outputs=["image"],
+)
+
+interface.launch()
