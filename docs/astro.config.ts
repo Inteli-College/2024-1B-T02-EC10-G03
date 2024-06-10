@@ -126,6 +126,11 @@ export default defineConfig({
 							autogenerate: { directory: 'sprint-4/system' },
 						},
 						{
+							label: 'Teste',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-4/tests' },
+						},
+						{
 							label: 'Review',
 							collapsed: true,
 							autogenerate: { directory: 'sprint-4/review' },

@@ -1,6 +1,12 @@
-### Testes Unitários
+---
+title: Testes Unitários
+sidebar:
+    label: Testes Frontend
+    order: 1
+description: Testes unitários para o frontend do projeto.
+---
 
-#### Teste 1: HomePage Component
+### Teste 1: HomePage Component
 
 **Objetivo:** Verificar se o componente `HomePage` é renderizado corretamente e se as navegações para as telas de Login e Register funcionam conforme esperado.
 
@@ -28,7 +34,7 @@ it('navigates to Login screen when Login button is pressed', () => {
 });
 ```
 
-#### Teste 2: SignInPage Component
+### Teste 2: SignInPage Component
 
 **Objetivo:** Verificar se o componente `SignInPage` é renderizado corretamente, se as validações de formulário são realizadas e se o login é processado corretamente.
 
@@ -97,7 +103,7 @@ it('shows an error alert if login fails', async () => {
 });
 ```
 
-#### Teste 3: SignUpScreen Component
+### Teste 3: SignUpScreen Component
 
 **Objetivo:** Verificar se o componente `SignUpScreen` é renderizado corretamente, se os cargos são buscados ao montar o componente e se o registro de novos usuários é processado corretamente.
 
@@ -178,7 +184,7 @@ it('navigates to Login screen when "Faça o Login" is pressed', () => {
 });
 ```
 
-#### Teste 4: QRScannerPage Component
+### Teste 4: QRScannerPage Component
 
 **Objetivo:** Verificar se o componente `QRScannerPage` é renderizado corretamente e se as permissões da câmera são tratadas corretamente, além de testar a navegação e o manuseio de erros.
 
@@ -238,7 +244,7 @@ it('displays error alert when API call fails', async () => {
 });
 ```
 
-#### Teste 5: ReportPage Component
+### Teste 5: ReportPage Component
 
 **Objetivo:** Verificar se o componente `ReportPage` é renderizado corretamente e se os dados são buscados e enviados corretamente.
 
@@ -322,7 +328,7 @@ it('submits report correctly', async () => {
 });
 ```
 
-#### Teste 6: SolicitationPage Component
+### Teste 6: SolicitationPage Component
 
 **Objetivo:** Verificar se o componente `SolicitationPage` é renderizado corretamente, se as informações são buscadas na montagem do componente e se os erros da API são tratados corretamente.
 
@@ -404,7 +410,7 @@ it('navigates back when the back button is pressed', async () => {
 });
 ```
 
-#### Teste 7: HistoryPage Component
+### Teste 7: HistoryPage Component
 
 **Objetivo:** Verificar se o componente `HistoryPage` é renderizado corretamente durante o carregamento, após o carregamento e se os relatórios são exibidos com base no equipamento selecionado.
 
@@ -436,7 +442,7 @@ it('renders reports based on selected equipment', async () => {
 });
 ```
 
-#### Teste 8: Settings Component
+### Teste 8: Settings Component
 
 **Objetivo:** Verificar se o componente `Settings` é renderizado corretamente, se os valores iniciais são exibidos corretamente e se as interações com os controles funcionam conforme esperado.
 
@@ -484,7 +490,7 @@ it('renders FooterMenu component', () => {
 });
 ```
 
-#### Teste 9: Help Component
+### Teste 9: Help Component
 
 **Objetivo:** Verificar se o componente `Help` é renderizado corretamente e se o texto do email é exibido na cor azul.
 
