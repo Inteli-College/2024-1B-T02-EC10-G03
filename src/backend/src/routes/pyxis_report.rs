@@ -10,6 +10,11 @@ struct UpdatePatientReportStatusInput {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+struct UpdatePatientObservationInput {
+	observation: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 struct CreatePatientReportInput {
 	pyxis_id: String,
 	medicine_id: String,
@@ -108,6 +113,23 @@ pub async fn update_pyxis_report_status(
 	Ok(HttpResponse::Ok().json(&report))
 }
 
+#[web::put("/{cuid}/observation")]
+pub async fn update_pyxis_report_observation(
+	state: web::types::State<AppStateType>,
+	cuid: web::types::Path<String>,
+	input: web::types::Json<UpdatePatientObservationInput>,
+) -> Result<HttpResponse, HttpError> {
+	let app_state = state.read().await;
+	let repository = &app_state.repositories.pyxis_report;
+
+	let report = repository
+		.update_observation(cuid.into_inner(), input.observation.clone())
+		.await
+		.map_err(|_| HttpError::internal_server_error("Failed to update pyxis report status"))?;
+
+	Ok(HttpResponse::Ok().json(&report))
+}
+
 #[web::get("/types")]
 pub async fn list_types() -> HttpResponse {
 	let roles = vec![
@@ -126,6 +148,7 @@ pub fn init(config: &mut web::ServiceConfig) {
 			.service(get_all_pyxis_reports)
 			.service(get_pyxis_report)
 			.service(create_pyxis_report)
-			.service(update_pyxis_report_status),
+			.service(update_pyxis_report_status)
+			.service(update_pyxis_report_observation)
 	);
 }
