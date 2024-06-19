@@ -37,8 +37,6 @@ class Record:
             ret, frame = self.camera.read()
             if ret:
                 self.out.write(frame)
-                cv.imshow('Recording', frame)
-                cv.waitKey(1)
 
     def release_all(self):
         self.recording = False
