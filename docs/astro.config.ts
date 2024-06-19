@@ -114,11 +114,40 @@ export default defineConfig({
 					label: 'Sprint 4',
 					collapsed: true,
 					autogenerate: { directory: 'sprint-4' },
+					items: [
+						{
+							label: 'Experiência do Usuário',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-4/ux' },
+						},
+						{
+							label: 'Sistema',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-4/system' },
+						},
+						{
+							label: 'Teste',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-4/tests' },
+						},
+						{
+							label: 'Review',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-4/review' },
+						},
+					],
 				},
 				{
 					label: 'Sprint 5',
 					collapsed: true,
 					autogenerate: { directory: 'sprint-5' },
+					items: [
+						{
+							label: 'Negócios',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-5/business' },
+						},
+					]
 				},
 			],
 			pagination: true,

@@ -57,4 +57,13 @@ impl PyxisReportRepository {
 			.exec()
 			.await
 	}
+
+	pub async fn update_observation(&self, cuid: String, observation: String) -> Result<PyxisReport, QueryError> {
+		self.db_client
+			.get_db()
+			.pyxis_report()
+			.update(pyxis_report::cuid::equals(cuid), vec![pyxis_report::observation::set(observation)])
+			.exec()
+			.await
+	}
 }

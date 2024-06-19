@@ -1,0 +1,511 @@
+---
+title: Testes Unitários
+sidebar:
+    label: Testes Frontend
+    order: 1
+description: Testes unitários para o frontend do projeto.
+---
+
+### Teste 1: HomePage Component
+
+**Objetivo:** Verificar se o componente `HomePage` é renderizado corretamente e se as navegações para as telas de Login e Register funcionam conforme esperado.
+
+```jsx
+// Teste de renderização
+it('renders correctly', () => {
+  const { getByLabelText } = render(
+    <NavigationContainer>
+      <HomePage navigation={navigation} />
+    </NavigationContainer>
+  );
+  expect(getByLabelText('Login')).toBeTruthy();
+  expect(getByLabelText('Register')).toBeTruthy();
+});
+
+// Teste de navegação
+it('navigates to Login screen when Login button is pressed', () => {
+  const { getByLabelText } = render(
+    <NavigationContainer>
+      <HomePage navigation={navigation} />
+    </NavigationContainer>
+  );
+  fireEvent.press(getByLabelText('Login'));
+  expect(navigation.navigate).toHaveBeenCalledWith('Login');
+});
+```
+
+### Teste 2: SignInPage Component
+
+**Objetivo:** Verificar se o componente `SignInPage` é renderizado corretamente, se as validações de formulário são realizadas e se o login é processado corretamente.
+
+```jsx
+// Teste de renderização correta
+it('renders correctly', () => {
+  const { getByPlaceholderText, getByText } = render(<SignInPage navigation={navigation} />);
+
+  expect(getByText('Log In')).toBeTruthy();
+  expect(getByPlaceholderText('Email')).toBeTruthy();
+  expect(getByPlaceholderText('Password')).toBeTruthy();
+  expect(getByText('Login')).toBeTruthy();
+  expect(getByText('Ainda não está registrado?')).toBeTruthy();
+  expect(getByText('Cadastre-se')).toBeTruthy();
+  expect(getByText('Esqueceu a Senha?')).toBeTruthy();
+});
+
+// Teste de validação de formulário vazio
+it('shows an error if email or password is empty', () => {
+  const { getByText } = render(<SignInPage navigation={navigation} />);
+
+  fireEvent.press(getByText('Login'));
+
+  waitFor(() => {
+    expect(Alert.alert).toHaveBeenCalledWith('Erro', 'Por favor, preencha todos os campos');
+  });
+});
+
+// Teste de navegação para a página de cadastro
+it('navigates to SignUp page when "Cadastre-se" is pressed', () => {
+  const { getByText } = render(<SignInPage navigation={navigation} />);
+
+  fireEvent.press(getByText('Cadastre-se'));
+  expect(navigation.navigate).toHaveBeenCalledWith('SignUp');
+});
+
+// Teste de login bem-sucedido e navegação para a página de scanner de QR
+it('logs in successfully and navigates to QRScanner page', async () => {
+  (ClientAPI.user.login as jest.Mock).mockResolvedValue({ status: 200 });
+
+  const { getByText, getByPlaceholderText } = render(<SignInPage navigation={navigation} />);
+
+  fireEvent.changeText(getByPlaceholderText('Email'), 'test@example.com');
+  fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
+  fireEvent.press(getByText('Login'));
+
+  await waitFor(() => {
+    expect(ClientAPI.user.login).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password123' });
+    expect(navigation.navigate).toHaveBeenCalledWith('QRScanner');
+  });
+});
+
+// Teste de alerta de erro ao falhar o login
+it('shows an error alert if login fails', async () => {
+  (ClientAPI.user.login as jest.Mock).mockRejectedValue({ response: { data: { message: 'Invalid credentials' } } });
+
+  const { getByText, getByPlaceholderText } = render(<SignInPage navigation={navigation} />);
+
+  fireEvent.changeText(getByPlaceholderText('Email'), 'test@example.com');
+  fireEvent.changeText(getByPlaceholderText('Password'), 'wrongpassword');
+  fireEvent.press(getByText('Login'));
+
+  await waitFor(() => {
+    expect(Alert.alert).toHaveBeenCalledWith('Login falhou', 'Invalid credentials');
+  });
+});
+```
+
+### Teste 3: SignUpScreen Component
+
+**Objetivo:** Verificar se o componente `SignUpScreen` é renderizado corretamente, se os cargos são buscados ao montar o componente e se o registro de novos usuários é processado corretamente.
+
+```jsx
+// Teste de renderização correta
+it('renders correctly', () => {
+  const { getByPlaceholderText, getByText } = render(<SignUpScreen navigation={navigation} />);
+
+  expect(getByText('Sign Up')).toBeTruthy();
+  expect(getByPlaceholderText('Nome')).toBeTruthy();
+  expect(getByPlaceholderText('Email')).toBeTruthy();
+  expect(getByPlaceholderText('Password')).toBeTruthy();
+  expect(getByText('Selecione um Cargo:')).toBeTruthy();
+  expect(getByText('Cadastre-se')).toBeTruthy();
+  expect(getByText('Já está cadastrado?')).toBeTruthy();
+  expect(getByText('Faça o Login')).toBeTruthy();
+});
+
+// Teste de busca de cargos ao montar o componente
+it('fetches roles on mount', async () => {
+  (axios.get as jest.Mock).mockResolvedValue({ data: ['Admin', 'User'] });
+
+  const { getByText } = render(<SignUpScreen navigation={navigation} />);
+
+  await waitFor(() => {
+    expect(getByText('Admin')).toBeTruthy();
+    expect(getByText('User')).toBeTruthy();
+  });
+});
+
+// Teste de alerta de erro ao falhar o registro
+it('shows an error alert if registration fails', async () => {
+  (ClientAPI.user.registerEmployee as jest.Mock).mockRejectedValue({
+    response: { data: { message: 'Registration failed' } },
+  });
+
+  const { getByText, getByPlaceholderText } = render(<SignUpScreen navigation={navigation} />);
+
+  fireEvent.changeText(getByPlaceholderText('Nome'), 'Test User');
+  fireEvent.changeText(getByPlaceholderText('Email'), 'test@example.com');
+  fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
+  fireEvent.press(getByText('Cadastre-se'));
+
+  await waitFor(() => {
+    expect(Alert.alert).toHaveBeenCalledWith('Error', 'Registration failed');
+  });
+});
+
+// Teste de registro bem-sucedido e navegação para a tela de login
+it('registers employee and navigates to Login screen on success', async () => {
+  (ClientAPI.user.registerEmployee as jest.Mock).mockResolvedValue({ status: 201 });
+
+  const { getByText, getByPlaceholderText } = render(<SignUpScreen navigation={navigation} />);
+
+  fireEvent.changeText(getByPlaceholderText('Nome'), 'Test User');
+  fireEvent.changeText(getByPlaceholderText('Email'), 'test@example.com');
+  fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
+  fireEvent.press(getByText('Cadastre-se'));
+
+  await waitFor(() => {
+    expect(ClientAPI.user.registerEmployee).toHaveBeenCalledWith({
+      name: 'Test User',
+      email: 'test@example.com',
+      password: 'password123',
+      role: '',
+    });
+    expect(Alert.alert).toHaveBeenCalledWith('Success', 'Employee registered successfully');
+    expect(navigation.navigate).toHaveBeenCalledWith('Login');
+  });
+});
+
+// Teste de navegação para a tela de login ao pressionar "Faça o Login"
+it('navigates to Login screen when "Faça o Login" is pressed', () => {
+  const { getByText } = render(<SignUpScreen navigation={navigation} />);
+
+  fireEvent.press(getByText('Faça o Login'));
+  expect(navigation.navigate).toHaveBeenCalledWith('Login');
+});
+```
+
+### Teste 4: QRScannerPage Component
+
+**Objetivo:** Verificar se o componente `QRScannerPage` é renderizado corretamente e se as permissões da câmera são tratadas corretamente, além de testar a navegação e o manuseio de erros.
+
+```jsx
+// Teste de mensagem de permissão pendente
+it('renders permission request message when permission is null', () => {
+  (useCameraPermissions as jest.Mock).mockReturnValue([null, setPermission]);
+  const { getByText } = render(<QRScannerPage navigation={navigation} />);
+  expect(getByText('Solicitando permissão para acessar a câmera...')).toBeTruthy();
+});
+
+// Teste de mensagem de acesso negado
+it('renders no access message when permission is not granted', () => {
+  (useCameraPermissions as jest.Mock).mockReturnValue([{ granted: false }, setPermission]);
+  const { getByText } = render(<QRScannerPage navigation={navigation} />);
+  expect(getByText('Sem acesso à câmera')).toBeTruthy();
+});
+
+// Teste de renderização da câmera
+it('renders camera view when permission is granted', () => {
+  const { getByTestId } = render(<QRScannerPage navigation={navigation} />);
+  expect(getByTestId('cameraView')).toBeTruthy();
+});
+
+// Teste de navegação ao escanear código QR
+it('navigates to Report screen when QR code is scanned', async () => {
+  (ClientAPI.pyxis.getSpecific as jest.Mock).mockResolvedValue({
+    data: { floor: '1', block: 'A', uuid: '1234' },
+  });
+  const { getByTestId } = render(<QRScannerPage navigation={navigation} />);
+  fireEvent(getByTestId('cameraView'), 'onTouchEnd', {
+    type: 'QR_CODE',
+    data: '1234',
+  });
+  await waitFor(() => {
+    expect(navigation.navigate).toHaveBeenCalledWith('Report', {
+      pyxis_data: { floor: '1', block: 'A', uuid: '1234' },
+      pyxis_id: '1A',
+    });
+  });
+});
+
+// Teste de exibição de alerta de erro
+it('displays error alert when API call fails', async () => {
+  const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  (ClientAPI.pyxis.getSpecific as jest.Mock).mockRejectedValue(new Error('API Error'));
+  const { getByTestId } = render(<QRScannerPage navigation={navigation} />);
+  fireEvent(getByTestId('cameraView'), 'onTouchEnd', {
+    type: 'QR_CODE',
+    data: '1234',
+  });
+  await waitFor(() => {
+    expect(Alert.alert).toHaveBeenCalledWith('Erro', 'Erro ao Obter o ID do Pyxis, tente novamente.');
+    expect(errorSpy).toHaveBeenCalledWith(new Error('API Error'));
+  });
+  errorSpy.mockRestore();
+});
+```
+
+### Teste 5: ReportPage Component
+
+**Objetivo:** Verificar se o componente `ReportPage` é renderizado corretamente e se os dados são buscados e enviados corretamente.
+
+```jsx
+// Teste de renderização correta
+it('renders correctly', async () => {
+  (ClientAPI.inventory.getAllMedicinesOfPyxis as jest.Mock).mockResolvedValue({
+    data: [{ medicineId: '1', quantity: 10 }],
+  });
+  (ClientAPI.medicine.getSpecific as jest.Mock).mockResolvedValue({
+    data: { MedicineNames: [{ name: 'Aspirin' }] },
+  });
+
+  const { getByText } = render(<ReportPage route={route} navigation={navigation} />);
+
+  await waitFor(() => {
+    expect(getByText('Report')).toBeTruthy();
+    expect(getByText('Aspirin')).toBeTruthy();
+  });
+});
+
+// Teste de alerta de erro ao falhar a busca do inventário
+it('shows error alert if inventory fetch fails', async () => {
+  (ClientAPI.inventory.getAllMedicinesOfPyxis as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+  const { getByText } = render(<ReportPage route={route} navigation={navigation} />);
+
+  await waitFor(() => {
+    expect(getByText('Unable to fetch inventory data.')).toBeTruthy();
+  });
+});
+
+// Teste de alerta de erro ao falhar a busca do usuário
+it('shows error alert if user fetch fails', async () => {
+  (ClientAPI.user.getInfo as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+  const { getByText, getByRole } = render(<ReportPage route={route} navigation={navigation} />);
+
+  fireEvent.press(getByRole('button', { name: /Enviar/i }));
+
+  await waitFor(() => {
+    expect(getByText('Unable to fetch user data.')).toBeTruthy();
+  });
+});
+
+// Teste de envio correto do relatório
+it('submits report correctly', async () => {
+  (ClientAPI.inventory.getAllMedicinesOfPyxis as jest.Mock).mockResolvedValue({
+    data: [{ medicineId: '1', quantity: 10 }],
+  });
+  (ClientAPI.medicine.getSpecific as jest.Mock).mockResolvedValue({
+    data: { MedicineNames: [{ name: 'Aspirin' }] },
+  });
+  (ClientAPI.user.getInfo as jest.Mock).mockResolvedValue({
+    data: { uuid: 'user-123' },
+  });
+  (ClientAPI.pyxis_report.create as jest.Mock).mockResolvedValue({
+    status: 201,
+  });
+
+  const { getByText, getByPlaceholderText, getByRole } = render(<ReportPage route={route} navigation={navigation} />);
+
+  await waitFor(() => {
+    expect(getByText('Aspirin')).toBeTruthy();
+  });
+
+  fireEvent.changeText(getByPlaceholderText('Adicione mais informações'), 'Observação de teste');
+  fireEvent.press(getByRole('button', { name: /Enviar/i }));
+
+  await waitFor(() => {
+    expect(ClientAPI.pyxis_report.create).toHaveBeenCalledWith({
+      pyxis_id: '123',
+      employee_uuid: 'user-123',
+      medicine_id: '1',
+      type: undefined,
+      observation: 'Observação de teste',
+      urgency: false,
+    });
+    expect(navigation.navigate).toHaveBeenCalledWith('History');
+  });
+});
+```
+
+### Teste 6: SolicitationPage Component
+
+**Objetivo:** Verificar se o componente `SolicitationPage` é renderizado corretamente, se as informações são buscadas na montagem do componente e se os erros da API são tratados corretamente.
+
+```jsx
+// Teste de renderização correta
+it('renders correctly', async () => {
+  const mockUser = { data: { name: 'John Doe' } };
+  const mockReports = { data: [{ medicineId: '1', status: 'SENT', type: 'NEEDS_REFILL' }] };
+  const mockMedicines = { data: [{ id: '1', MedicineNames: [{ name: 'Aspirin' }] }] };
+
+  (ClientAPI.user.getInfo as jest.Mock).mockResolvedValue(mockUser);
+  (ClientAPI.pyxis_report.getAll as jest.Mock).mockResolvedValue(mockReports);
+  (ClientAPI.medicine.getAll as jest.Mock).mockResolvedValue(mockMedicines);
+
+  const { getByText, getAllByText } = render(<SolicitationPage navigation={navigation} />);
+
+  await waitFor(() => {
+    expect(getByText('Pixis 2')).toBeTruthy();
+    expect(getByText('Solicitação do dia')).toBeTruthy();
+    expect(getAllByText('Aspirin')).toBeTruthy();
+    expect(getByText('Enviada')).toBeTruthy();
+    expect(getByText('Recebida')).toBeTruthy();
+    expect(getByText('Em andamento')).toBeTruthy();
+    expect(getByText('Finalizada')).toBeTruthy();
+  });
+});
+
+// Teste de busca de relatórios e medicamentos na montagem do componente
+it('fetches reports and medicines on mount', async () => {
+  const mockUser = { data: { name: 'John Doe' } };
+  const mockReports = { data: [{ medicineId: '1', status: 'SENT', type: 'NEEDS_REFILL' }] };
+  const mockMedicines = { data: [{ id: '1', MedicineNames: [{ name: 'Aspirin' }] }] };
+
+  (ClientAPI.user.getInfo as jest.Mock).mockResolvedValue(mockUser);
+  (ClientAPI.pyxis_report.getAll as jest.Mock).mockResolvedValue(mockReports);
+  (ClientAPI.medicine.getAll as jest.Mock).mockResolvedValue(mockMedicines);
+
+  render(<SolicitationPage navigation={navigation} />);
+
+  await waitFor(() => {
+    expect(ClientAPI.user.getInfo).toHaveBeenCalled();
+    expect(ClientAPI.pyxis_report.getAll).toHaveBeenCalled();
+    expect(ClientAPI.medicine.getAll).toHaveBeenCalled();
+  });
+});
+
+// Teste de tratamento de erros da API
+it('handles API errors gracefully', async () => {
+  (ClientAPI.user.getInfo as jest.Mock).mockRejectedValue(new Error('API Error'));
+  (ClientAPI.pyxis_report.getAll as jest.Mock).mockRejectedValue(new Error('API Error'));
+  (ClientAPI.medicine.getAll as jest.Mock).mockRejectedValue(new Error('API Error'));
+
+  const { getByText } = render(<SolicitationPage navigation={navigation} />);
+
+  await waitFor(() => {
+    expect(getByText('Pixis 2')).toBeTruthy();
+    expect(getByText('Solicitação do dia')).toBeTruthy();
+  });
+});
+
+// Teste de navegação para trás ao pressionar o botão de voltar
+it('navigates back when the back button is pressed', async () => {
+  const mockUser = { data: { name: 'John Doe' } };
+  const mockReports = { data: [{ medicineId: '1', status: 'SENT', type: 'NEEDS_REFILL' }] };
+  const mockMedicines = { data: [{ id: '1', MedicineNames: [{ name: 'Aspirin' }] }] };
+
+  (ClientAPI.user.getInfo as jest.Mock).mockResolvedValue(mockUser);
+  (ClientAPI.pyxis_report.getAll as jest.Mock).mockResolvedValue(mockReports);
+  (ClientAPI.medicine.getAll as jest.Mock).mockResolvedValue(mockMedicines);
+
+  const { getByTestId } = render(<SolicitationPage navigation={navigation} />);
+
+  const backButton = getByTestId('back-button');
+  fireEvent.press(backButton);
+
+  await waitFor(() => {
+    expect(navigation.goBack).toHaveBeenCalled();
+  });
+});
+```
+
+### Teste 7: HistoryPage Component
+
+**Objetivo:** Verificar se o componente `HistoryPage` é renderizado corretamente durante o carregamento, após o carregamento e se os relatórios são exibidos com base no equipamento selecionado.
+
+```jsx
+// Teste de renderização durante o carregamento
+it('renders correctly while loading', () => {
+  const { getByTestId } = render(<HistoryPage />);
+  expect(getByTestId('loading-indicator')).toBeTruthy();
+});
+
+// Teste de renderização após o carregamento
+it('renders correctly after loading', async () => {
+  const { getByText } = render(<HistoryPage />);
+  await waitFor(() => {
+    expect(getByText('Meu Histórico')).toBeTruthy();
+    expect(getByText('Dipirona XXmg')).toBeTruthy();
+  });
+});
+
+// Teste de relatórios baseados no equipamento selecionado
+it('renders reports based on selected equipment', async () => {
+  const { getByText, getByTestId } = render(<HistoryPage />);
+  await waitFor(() => {
+    fireEvent.press(getByTestId('dropdown-component'));
+    fireEvent.press(getByText('1A'));
+    expect(getByText('Medicine 1 - 1')).toBeTruthy();
+    expect(getByText('Inconsistência')).toBeTruthy();
+  });
+});
+```
+
+### Teste 8: Settings Component
+
+**Objetivo:** Verificar se o componente `Settings` é renderizado corretamente, se os valores iniciais são exibidos corretamente e se as interações com os controles funcionam conforme esperado.
+
+```jsx
+// Teste de renderização correta
+it('renders correctly', () => {
+  const { getByText, getByDisplayValue } = render(<Settings />);
+
+  // Verificar a renderização dos textos e valores iniciais
+  expect(getByText('Configurações')).toBeTruthy();
+  expect(getByText('Modo Escuro')).toBeTruthy();
+  expect(getByText('Idioma')).toBeTruthy();
+  expect(getByText('Notificações')).toBeTruthy();
+  expect(getByDisplayValue('Português')).toBeTruthy();
+  expect(getByText('Se você está com dúvidas, entre em contato com o suporte técnico pelo email:')).toBeTruthy();
+  expect(getByText('suporte@exemplo.com')).toBeTruthy();
+});
+
+// Teste de alternância do modo escuro
+it('toggles dark mode switch', () => {
+  const { getByTestId } = render(<Settings />);
+
+  const darkModeSwitch = getByTestId('dark-mode-switch');
+  expect(darkModeSwitch.props.value).toBe(false);
+
+  fireEvent.press(darkModeSwitch);
+  expect(darkModeSwitch.props.value).toBe(true);
+});
+
+// Teste de mudança de idioma
+it('changes language', () => {
+  const { getByDisplayValue, getByTestId } = render(<Settings />);
+
+  const languagePicker = getByTestId('language-picker');
+  expect(getByDisplayValue('Português')).toBeTruthy();
+
+  fireEvent.change(languagePicker, { target: { value: 'en' } });
+  expect(getByDisplayValue('Inglês')).toBeTruthy();
+});
+
+// Teste de renderização do FooterMenu
+it('renders FooterMenu component', () => {
+  const { getByText } = render(<Settings />);
+  expect(getByText('FooterMenu')).toBeTruthy();
+});
+```
+
+### Teste 9: Help Component
+
+**Objetivo:** Verificar se o componente `Help` é renderizado corretamente e se o texto do email é exibido na cor azul.
+
+```jsx
+// Teste de renderização
+it('renders the Help component correctly', () => {
+  const { getByText } = render(<Help />);
+  expect(getByText('Help')).toBeTruthy();
+  expect(getByText('Se você está com dúvidas, entre em contato com o suporte técnico pelo email:')).toBeTruthy();
+});
+
+// Teste de estilo
+it('renders email text in blue', () => {
+  const { getByText } = render(<Help />);
+  const emailText = getByText('');
+  expect(emailText.props.style).toMatchObject({ color: 'blue' });
+});
+```
