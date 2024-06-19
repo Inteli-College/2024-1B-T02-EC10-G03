@@ -141,6 +141,13 @@ export default defineConfig({
 					label: 'Sprint 5',
 					collapsed: true,
 					autogenerate: { directory: 'sprint-5' },
+					items: [
+						{
+							label: 'Negócios',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-5/business' },
+						},
+					]
 				},
 			],
 			pagination: true,
