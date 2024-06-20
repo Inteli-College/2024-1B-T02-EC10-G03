@@ -1,9 +1,10 @@
 from enum import Enum
 import time
+import os
 
 import cv2 as cv
 
-from bucket_service import Bucket
+from services.bucket_service import Bucket
 
 file_name = f"record_{time.strftime('%Y_%m_%d_%H_%M_%S')}.mp4"
 
@@ -13,8 +14,8 @@ class Signal(Enum):
 
 class Record:
     def __init__(self):
-        self.camera = cv.VideoCapture(2)
-        self.out = cv.VideoWriter(file_name, cv.VideoWriter_fourcc(*'mp4v'),
+        self.camera = cv.VideoCapture(0)
+        self.out = cv.VideoWriter(os.path.join('../../videos', file_name), cv.VideoWriter_fourcc(*'mp4v'),
                                 self.camera.get(cv.CAP_PROP_FPS), 
                                 (640, 480)
                                 )
@@ -42,5 +43,5 @@ class Record:
         self.recording = False
         self.camera.release()
         self.out.release()
-        self.record.release()
+        # self.record.release()
         cv.destroyAllWindows()
