@@ -20,7 +20,7 @@ relay.on()
 record_service = Record()
 builder = TransactionRequestBuilder()
 producer = TopicProducer()
-TOPIC = "test-topic"
+TOPIC = "teste-topic"
 
 def start_recording_thread():
     record_service.signal_handler(Signal.START)
@@ -53,11 +53,11 @@ def open_pyxis(input):
 
         file_path = record_service.service.file_path
 
-        transaction_request.set_validation_video_path(file_path)
+        transaction_request.set_validation_video_path(os.path.basename(file_path))
 
         if transaction_request.is_valid():
             print(transaction_request)
-            threading.Thread(target=producer.produce, args=(TOPIC, transaction_request.to_json())).start()
+            threading.Thread(target=producer.produce, args=(TOPIC, "teste", transaction_request.to_json())).start()
             threading.Thread(target=producer.flush).start()
             return "Transaction completed!"
         else:

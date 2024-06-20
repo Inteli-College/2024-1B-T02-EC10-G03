@@ -15,12 +15,12 @@ class TopicProducer:
         else:
             print(f'\t\tMessage delivered to topic "{msg.topic()}"')
 
-    def produce(self, topic: str, message: str | dict):
+    def produce(self, topic: str, key: str, message: str | dict):
         if isinstance(message, dict):
             message = json.dumps(message)
 
         self.producer.produce(
-            topic, message.encode("utf-8"), callback=self.delivery_callback
+            topic, key, message.encode("utf-8"), callback=self.delivery_callback
         )
 
     def flush(self):
