@@ -28,10 +28,3 @@ class FileHandler(Thread):
     def run(self):
         for s3_object_name in self.s3_object_names:
             self.download_file_from_s3(s3_object_name)
-
-# s3_object_names = ["record_2024_06_07_09_58_26.mp4", "record_2024_06_13_14_33_13.mp4", "record_2024_06_13_14_39_17.mp4", "record_2024_06_13_14_41_40.mp4"]
-
-# file_handler = FileHandler(s3_object_names)
-
-# file_handler.start()
-# file_handler.join()
