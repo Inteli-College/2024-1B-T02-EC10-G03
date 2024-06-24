@@ -32,9 +32,9 @@ const Settings = () => {
                     style={styles.picker}
                     onValueChange={(itemValue) => setSelectedLanguage(itemValue)}
                 >
-                    <Picker.Item label="Português" value="pt" />
-                    <Picker.Item label="Inglês" value="en" />
-                    <Picker.Item label="Espanhol" value="es" />
+                    <Picker.Item style={{fontSize:14}} label="Português" value="pt" />
+                    <Picker.Item style={{fontSize:14}} label="Inglês" value="en" />
+                    <Picker.Item style={{fontSize:14}} label="Espanhol" value="es" />
                 </Picker>
             </View>
 
@@ -106,6 +106,9 @@ const styles = StyleSheet.create({
         height: 50,
         width: 150,
     },
+    pickerItem:{
+        fontSize:14
+    }
 });
 
 export default Settings;

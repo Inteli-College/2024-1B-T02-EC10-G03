@@ -44,7 +44,9 @@ const DropdownComponent = ({ selectedEquipment, setSelectedEquipment }) => {
 				}}
 				useNativeAndroidPickerStyle={false}
 				Icon={() => {
-					return <Text style={styles.pickerIcon}>V</Text>;
+					return <Text style={styles.pickerIcon}>
+						
+					</Text>;
 				}}
 			/>
 		</View>

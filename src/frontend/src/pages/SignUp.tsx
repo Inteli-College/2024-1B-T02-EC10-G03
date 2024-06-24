@@ -16,7 +16,7 @@ export default function SignUpScreen({ navigation }: { navigation: any }) {
   const [roles, setRoles] = useState<string[]>([]);
 
   useEffect(() => {
-    axios.get('http://0.tcp.sa.ngrok.io:19986/user/roles')
+    axios.get('http://0.tcp.sa.ngrok.io:19942/user/roles')
       .then((response: { data: string[] }) => {
         setRoles(response.data);
       })

@@ -45,6 +45,7 @@ interface FormData {
 	inconsistency: string | undefined;
 	observations: string | undefined;
 	selectedMedication: string | undefined;
+	status: string | undefined;
 }
 
 export default function ReportPage({ route, navigation }: any) {
@@ -56,6 +57,7 @@ export default function ReportPage({ route, navigation }: any) {
 		inconsistency: undefined,
 		observations: undefined,
 		selectedMedication: undefined,
+		status: undefined,
 	});
 
 	const handleInputChange = (name: string, value: string) => {
@@ -98,7 +100,8 @@ export default function ReportPage({ route, navigation }: any) {
 				medicine_id: medicineSelected,
 				type: problem as PyxisReportType,
 				observation: obs,
-				urgency: false
+				urgency: false,
+				status: "SENT"
 			});
 
 			console.log(response)
