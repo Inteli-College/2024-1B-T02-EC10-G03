@@ -1,35 +1,38 @@
 import React from 'react';
 import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Feather } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const FooterMenu = () => {
-	const navigation = useNavigation();
+    const navigation = useNavigation();
 
-	const handleNavigationPress = (screenName: string) => () => {
-		navigation.navigate(screenName as never);
-	};
+    const handleNavigationPress = (screenName: string) => () => {
+        navigation.navigate(screenName as never);
+    };
 
-	return (
-		<View style={styles.bottomMenu}>
-			<TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('History')} accessibilityLabel="Go to Solicitation">
-				<View style={styles.circle} />
-			</TouchableOpacity>
-			<TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('Solicitation')} accessibilityLabel="Go to History">
-				<View style={styles.circle} />
-			</TouchableOpacity>
-			<View style={styles.centerButtonContainer}>
-				<TouchableOpacity style={styles.centerButton} onPress={handleNavigationPress('QRScanner')} accessibilityLabel="Open QR Scanner">
-					<Image source={require('@assets/img/qrcode.png')} style={styles.qrCodeImage} />
-				</TouchableOpacity>
-			</View>
-			<TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('Settings')} accessibilityLabel="Settings">
-				<View style={styles.circle} />
-			</TouchableOpacity>
-			<TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('Help')} accessibilityLabel="Help and Support">
-				<View style={styles.circle} />
-			</TouchableOpacity>
-		</View>
-	);
+    return (
+        <View style={styles.bottomMenu}>
+            <TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('History')} accessibilityLabel="Go to Solicitation">
+			<Feather name="list" size={24} color="black" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('Solicitation')} accessibilityLabel="Go to History">
+			<MaterialIcons name="medical-information" size={24} color="black" />
+            </TouchableOpacity>
+            <View style={styles.centerButtonContainer}>
+                <TouchableOpacity style={styles.centerButton} onPress={handleNavigationPress('QRScanner')} accessibilityLabel="Open QR Scanner">
+                    <Image source={require('@assets/img/qrcode.png')} style={styles.qrCodeImage} />
+                </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('Settings')} accessibilityLabel="Settings">
+                <Feather name="settings" size={24} color="black" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuButton} onPress={handleNavigationPress('Help')} accessibilityLabel="Help and Support">
+                <Feather name="help-circle" size={24} color="black" />
+            </TouchableOpacity>
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({

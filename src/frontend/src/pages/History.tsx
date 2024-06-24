@@ -1,11 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Button } from 'react-native';
 import DropdownComponent from '@components/SelectPyxisDropdownComponent/SelectPyxisDropdownComponent';
 import FooterMenu from '@components/FooterMenu/FooterMenu';
 import ClientAPI from '@api/client';
-import { PyxisReport, PyxisReportType } from 'types/api';
-
-
+import { PyxisReport, PyxisReportType, EmployeeRole } from 'types/api';
+import { useNavigation } from '@react-navigation/native';
 
 const getResponse = async () => {
     const medicines = await ClientAPI.medicine.getAll();
@@ -31,14 +30,58 @@ const useEmployeeReports = () => {
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-        getResponse().then((data) => {
-            setReports(data);
-            setLoading(false);
-        });
+        const fetchData = async () => {
+            try {
+                const medicinesResponse = await ClientAPI.medicine.getAll();
+                const pyxisReportsResponse = await ClientAPI.pyxis_report.getAll();
+                const pyxisResponse = await ClientAPI.pyxis.getAll();
+
+                const medicines = medicinesResponse.data;
+                const pyxisReports = pyxisReportsResponse.data;
+                const pyxis = pyxisResponse.data;
+
+                // Associar medicamentos aos relatórios
+                pyxisReports.forEach((report: PyxisReport) => {
+                    const medicine = medicines.find((m) => m.id === report.medicineId);
+                    if (medicine) {
+                        report.medicine = medicine;
+                    }
+                });
+
+                // Associar Pyxis aos relatórios
+                pyxisReports.forEach((report: PyxisReport) => {
+                    const pyxisItem = pyxis.find((p) => p.uuid === report.pyxisUuid);
+                    if (pyxisItem) {
+                        report.pyxis = pyxisItem;
+                    }
+                });
+
+                // Ordenar relatórios: colocar concluídos no final
+                pyxisReports.sort((a: PyxisReport, b: PyxisReport) => {
+                    // Mover relatórios com status FINISHED para o final
+                    if (a.status === 'FINISHED' && b.status !== 'FINISHED') {
+                        return 1;
+                    } else if (b.status === 'FINISHED' && a.status !== 'FINISHED') {
+                        return -1;
+                    }
+                    // Ordenação padrão pelo cuid (ou outra chave relevante)
+                    return 0;
+                });
+
+                setReports(pyxisReports);
+                setLoading(false);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                setLoading(false);
+            }
+        };
+
+        fetchData();
     }, []);
 
     return { reports, loading };
-}
+};
+
 
 const HistoryCard = ({ title, subtitle }: { title: string; subtitle: string }) => (
     <View style={styles.card}>
@@ -67,24 +110,103 @@ const report_type_to_string = (type: PyxisReportType) => {
     }
 }
 
+const ReportItem = ({ report, role, onVerifyPress, isDeclined, onDeclinePress }: { report: PyxisReport, role: EmployeeRole, onVerifyPress: () => void, isDeclined: boolean, onDeclinePress: () => void }) => {
+    const [showUpdateStatusButton, setShowUpdateStatusButton] = useState(false);
 
-const ReportItem = ({ report }: { report: PyxisReport }) => (
-    <View style={styles.reportItem}>
-        <View style={styles.reportHeader}>
-            <Text style={styles.reportTitle}>{report.medicine.MedicineNames[0].name} - {report.medicine.id}</Text>
-            <Text style={styles.reportSubtitle}>{report_type_to_string(report.type)}</Text>
+    const handleAccept = () => {
+        setShowUpdateStatusButton(true);
+        onVerifyPress(report.cuid);
+    };
+
+    return (
+        <View style={styles.reportItem}>
+            <View style={styles.reportHeader}>
+                <Text style={styles.reportTitle}>{report.medicine.MedicineNames[0].name} - {report.medicine.id}</Text>
+                <Text style={styles.reportSubtitle}>{report_type_to_string(report.type)}</Text>
+            </View>
+            <Text style={styles.reportDetails}>{report.observation}</Text>
+            {role === 'PHARMACIST' && (
+                report.status === "FINISHED" ? (
+                    <Text style={styles.resolvedText}>Pedido Resolvido</Text>
+                ) : (
+                    isDeclined ? (
+                        <Button
+                            title="Pedido Recusado"
+                            disabled
+                        />
+                    ) : (
+                        showUpdateStatusButton ? (
+                            <Button
+                                title="Atualizar Status"
+                                onPress={() => {
+                                    // Implementar a lógica de atualização de status aqui
+                                    // handleUpdateStatus(report.cuid);
+                                }}
+                            />
+                        ) : (
+                            <>
+                                <Button
+                                    title="Verificar Pedido"
+                                    onPress={handleAccept}
+                                />
+                                <Button
+                                    title="Recusar"
+                                    onPress={onDeclinePress}
+                                />
+                            </>
+                        )
+                    )
+                )
+            )}
         </View>
-        <Text style={styles.reportDetails}>{report.observation}</Text>
-    </View>
-);
+    );
+};
 
-export default function HistoryPage() {
-    const [selectedEquipment, setSelectedEquipment] = React.useState(null);
+const HistoryPage = () => {
+    const [selectedEquipment, setSelectedEquipment] = useState(null);
     const { reports, loading } = useEmployeeReports();
-	const [reader, setReader] = React.useState([
-		{ title: 'Dipirona XXmg', subtitle: 'Medicamento mais Frequente', key: '1' },
-		{ title: 'YY', subtitle: 'Qtd. de Reports Registrados', key: '2' },
-	]);
+    const [role, setRole] = useState('');
+    const [showCard, setShowCard] = useState(false);
+    const [declinedReports, setDeclinedReports] = useState<string[]>([]);
+    const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+    const navigation = useNavigation();
+
+    React.useEffect(() => {
+        const fetchUserInfo = async () => {
+            try {
+                const response = await ClientAPI.user.getInfo();
+                if (response.status === 200) {
+                    setRole(response.data.role);
+                }
+            } catch (error) {
+                console.log('error', error);
+            }
+        };
+
+        fetchUserInfo();
+    }, []);
+
+    const handleVerifyOrder = (reportId: string) => {
+        setSelectedReportId(reportId);
+        setShowCard(true);
+    };
+
+    const handleAccept = () => {
+        setShowCard(false);
+        setSelectedEquipment(null); // Resetar seleção
+        if (selectedReportId) {
+            if (role === "PHARMACIST") {
+                navigation.navigate('Solicitation', { reportId: selectedReportId });
+            } else {
+                navigation.navigate('Solicitation');
+            }
+        }
+    };
+
+    const handleDecline = (reportId: string) => {
+        setShowCard(false);
+        setDeclinedReports([...declinedReports, reportId]);
+    };
 
     if (loading) {
         return (
@@ -102,39 +224,40 @@ export default function HistoryPage() {
                     selectedEquipment={selectedEquipment}
                     setSelectedEquipment={setSelectedEquipment}
                 />
-
-                <FlatList
-                    data={reader}
-                    renderItem={({ item }) => <HistoryCard title={item.title} subtitle={item.subtitle} />}
-                    keyExtractor={(item) => item.key}
-                    numColumns={2}
-                    columnWrapperStyle={styles.columnWrapper}
-                />
-
                 <Text style={styles.subHeader}>Reports Realizados</Text>
                 <FlatList
                     data={reports.filter((report) => `${report.pyxis.floor}${report.pyxis.block}` === selectedEquipment)}
-                    renderItem={({ item }) => <ReportItem report={item} />}
+                    renderItem={({ item }) => (
+                        <ReportItem
+                            report={item}
+                            role={role}
+                            onVerifyPress={handleVerifyOrder}
+                            isDeclined={declinedReports.includes(item.cuid)}
+                            onDeclinePress={() => handleDecline(item.cuid)}
+                        />
+                    )}
                     keyExtractor={(item: PyxisReport) => item.cuid}
                     style={styles.reportList}
                 />
 
-
-                {/*
-                <Text style={styles.subHeader}>Solicitações Feitas</Text>
-                <FlatList
-                    data={historyItems}
-                    renderItem={({ item }) => <HistoryItem name={item.name} details={item.details} />}
-                    keyExtractor={(item) => item.key}
-                    style={styles.historyList}
-                />*/}
-
+                {showCard && (
+                    <View style={styles.verificationCard}>
+                        <Text style={styles.verificationText}>Deseja aceitar ou recusar este pedido?</Text>
+                        <View style={styles.verificationButtons}>
+                            <TouchableOpacity style={styles.acceptButton} onPress={handleAccept}>
+                                <Text style={styles.buttonText}>Aceitar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.declineButton} onPress={() => handleDecline(selectedReportId || '')}>
+                                <Text style={styles.buttonText}>Recusar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                )}
             </View>
             <FooterMenu />
         </>
     );
-}
-
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -148,6 +271,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 16,
         color: '#2C3E50',
+        paddingTop: 50,
     },
     subHeader: {
         fontSize: 20,
@@ -181,7 +305,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     columnWrapper: {
-		height: 200,
+        height: 200,
         justifyContent: 'space-between',
     },
     historyList: {
@@ -196,52 +320,97 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
     historyName: {
-        color: '#9B59B6',
         fontSize: 16,
+        fontWeight: 'bold',
     },
     historyDetails: {
-        color: '#9B59B6',
         fontSize: 14,
-    },
-    reportList: {
-        marginTop: 10,
-        backgroundColor: '#F2F2F2',
-        borderRadius: 8,
-        padding: 16,
+        color: '#888888',
     },
     reportItem: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 10,
         padding: 16,
         marginVertical: 8,
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        borderRadius: 8,
+        backgroundColor: '#FFFFFF',
         shadowColor: '#000',
         shadowOpacity: 0.1,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
-        elevation: 3,
+        elevation: 2,
     },
     reportHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
         marginBottom: 8,
     },
     reportTitle: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
-        color: '#2C3E50',
     },
     reportSubtitle: {
         fontSize: 14,
-        color: '#8E44AD',
+        color: '#888888',
     },
     reportDetails: {
-        fontSize: 14,
-        color: '#34495E',
+        fontSize: 16,
+        marginBottom: 8,
+    },
+    resolvedText: {
+        color: '#2ECC71',
+        fontWeight: 'bold',
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    verificationCard: {
+        padding: 16,
+        marginTop: 20,
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        borderRadius: 8,
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    verificationText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 16,
+        textAlign: 'center',
+    },
+    verificationButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+    },
+    acceptButton: {
+        backgroundColor: '#2ECC71',
+        padding: 12,
+        borderRadius: 8,
+    },
+    declineButton: {
+        backgroundColor: '#E74C3C',
+        padding: 12,
+        borderRadius: 8,
+    },
+    buttonText: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
+        fontSize: 16,
+        textAlign: 'center',
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+    },
+    reportList: {
+        marginBottom: 20,
     },
 });
+
+export default HistoryPage;

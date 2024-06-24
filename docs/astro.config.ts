@@ -147,6 +147,16 @@ export default defineConfig({
 							collapsed: true,
 							autogenerate: { directory: 'sprint-5/business' },
 						},
+						{
+							label: 'Sistema',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-5/system' },
+						},
+						{
+							label: 'Review',
+							collapsed: true,
+							autogenerate: { directory: 'sprint-5/review' },
+						},
 					]
 				},
 			],
